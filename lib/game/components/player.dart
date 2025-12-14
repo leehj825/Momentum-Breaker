@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class Player extends BodyComponent {
   static const double radius = 15.0;
   static const double density = 1.0;
-  static const double linearDamping = 10.0; // High damping for quick stops
+  static const double linearDamping = 4.0; // Reduced damping to allow momentum transfer to weapon
   
   forge2d.Vector2? inputDirection;
   final forge2d.Vector2 initialPosition;
@@ -64,7 +64,7 @@ class Player extends BodyComponent {
       final normalized = direction.normalized();
       // Apply stronger impulse to generate more momentum for weapon swinging
       // Using impulse scaled by mass for consistent feel
-      final impulseMagnitude = strength * 80.0; // Increased for more momentum
+      final impulseMagnitude = strength * 120.0; // Increased for more momentum transfer
       final impulse = forge2d.Vector2(
         normalized.x * impulseMagnitude * body.mass,
         normalized.y * impulseMagnitude * body.mass,

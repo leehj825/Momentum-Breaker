@@ -8,13 +8,13 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 25.0;
   static const double baseDensity = 5.0; // High density for heavy feel
-  static const double friction = 0.5;
+  static const double friction = 0.2;
   
   final Player player;
   final forge2d.Vector2 initialPosition;
   DistanceJoint? joint;
   double currentMassMultiplier = 1.0;
-  double currentChainLengthMultiplier = 1.0;
+  double currentChainLengthMultiplier = 2.5; // Much longer chain for wider swings
   bool hasSpikes = false;
   
   Weapon({required this.player, required this.initialPosition});
@@ -24,7 +24,8 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 0.5, // Low damping to maintain momentum and swing
+      linearDamping: 0.1, // Very low damping to maintain momentum and swing freely
+      angularDamping: 0.0, // No angular damping for free rotation
     );
     
     final body = world.createBody(bodyDef);
@@ -34,8 +35,8 @@ class Weapon extends BodyComponent {
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
-      ..friction = 0.2 // Lower friction for more sliding/swinging
-      ..restitution = 0.3 // Slightly higher bounce
+      ..friction = 0.1 // Very low friction for free swinging
+      ..restitution = 0.4 // Higher bounce for more dynamic collisions
       ..userData = "weapon"; // String identifier for collision detection
     
     body.createFixture(fixtureDef);
@@ -69,8 +70,8 @@ class Weapon extends BodyComponent {
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
-    // Make chain length longer for more swing radius
-    final baseChainLength = (distance * 1.2) * currentChainLengthMultiplier;
+    // Make chain length much longer for wider swing radius
+    final baseChainLength = distance * currentChainLengthMultiplier;
     
     final jointDef = DistanceJointDef()
       ..initialize(
@@ -96,7 +97,8 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: oldPos,
-      linearDamping: 2.0,
+      linearDamping: 0.1,
+      angularDamping: 0.0,
     );
     
     body = world.createBody(bodyDef);
@@ -106,12 +108,12 @@ class Weapon extends BodyComponent {
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
-      ..friction = friction
-      ..restitution = 0.2
-      ..userData = this;
+      ..friction = 0.1
+      ..restitution = 0.4
+      ..userData = "weapon";
     
     body.createFixture(fixtureDef);
-    body.userData = this;
+    body.userData = "weapon";
     
     // Recreate joint
     createJoint();
@@ -167,7 +169,7 @@ class Weapon extends BodyComponent {
     }
   }
 
-  Vector2 getVelocity() {
+  forge2d.Vector2 getVelocity() {
     return body.linearVelocity;
   }
 }
