@@ -7,12 +7,12 @@ import 'player.dart';
 
 class Weapon extends BodyComponent {
   static const double baseRadius = 25.0;
-  static const double baseDensity = 5.0; // High density for heavy feel
-  static const double friction = 0.2;
+  static const double baseDensity = 20.0; // Much heavier for more momentum
+  static const double friction = 0.0; // No friction for free swinging
   
   final Player player;
   final forge2d.Vector2 initialPosition;
-  DistanceJoint? joint;
+  forge2d.RopeJoint? joint;
   double currentMassMultiplier = 1.0;
   double currentChainLengthMultiplier = 1.5; // Chain length multiplier for swings
   bool hasSpikes = false;
@@ -24,7 +24,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 0.1, // Very low damping to maintain momentum and swing freely
+      linearDamping: 0.02, // Drastically reduced damping for longer swings
       angularDamping: 0.0, // No angular damping for free rotation
     );
     
@@ -35,7 +35,7 @@ class Weapon extends BodyComponent {
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
-      ..friction = 0.1 // Very low friction for free swinging
+      ..friction = friction // No friction for free swinging
       ..restitution = 0.4 // Higher bounce for more dynamic collisions
       ..userData = "weapon"; // String identifier for collision detection
     
@@ -74,21 +74,18 @@ class Weapon extends BodyComponent {
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
-    // Make chain length much longer for wider swing radius
-    final baseChainLength = distance * currentChainLengthMultiplier;
+    // Calculate maximum chain length (allows slack for swinging)
+    final maxLength = distance * currentChainLengthMultiplier;
     
-    final jointDef = DistanceJointDef()
-      ..initialize(
-        player.body,
-        body,
-        playerPos,
-        weaponPos,
-      )
-      ..length = baseChainLength
-      ..frequencyHz = 0.0 // No spring effect - allows free swinging
-      ..dampingRatio = 0.0; // No damping - maintains momentum
+    // Use RopeJoint instead of DistanceJoint for chain-like behavior
+    // RopeJointDef uses default constructor, then set properties
+    final jointDef = forge2d.RopeJointDef()
+      ..bodyA = player.body
+      ..bodyB = body
+      ..maxLength = maxLength; // Maximum rope length (allows slack)
+    // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
     
-    joint = DistanceJoint(jointDef);
+    joint = forge2d.RopeJoint(jointDef);
     world.createJoint(joint!);
   }
 
@@ -101,7 +98,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: oldPos,
-      linearDamping: 0.1,
+      linearDamping: 0.02, // Match new damping value
       angularDamping: 0.0,
     );
     
@@ -112,7 +109,7 @@ class Weapon extends BodyComponent {
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
-      ..friction = 0.1
+      ..friction = friction // Use constant value
       ..restitution = 0.4
       ..userData = "weapon";
     
@@ -129,24 +126,19 @@ class Weapon extends BodyComponent {
       final playerPos = player.body.worldCenter;
       final weaponPos = body.worldCenter;
       final distance = (weaponPos - playerPos).length;
-      final newLength = distance * currentChainLengthMultiplier;
+      final newMaxLength = distance * currentChainLengthMultiplier;
       
       // Destroy old joint
       world.destroyJoint(joint!);
       
-      // Create new joint with updated length
-      final jointDef = DistanceJointDef()
-        ..initialize(
-          player.body,
-          body,
-          playerPos,
-          weaponPos,
-        )
-        ..length = newLength
-        ..frequencyHz = 0.0
-        ..dampingRatio = 0.0;
+      // Create new RopeJoint with updated max length
+      final jointDef = forge2d.RopeJointDef()
+        ..bodyA = player.body
+        ..bodyB = body
+        ..maxLength = newMaxLength; // Maximum rope length
+      // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
       
-      joint = DistanceJoint(jointDef);
+      joint = forge2d.RopeJoint(jointDef);
       world.createJoint(joint!);
     }
   }
