@@ -32,10 +32,10 @@ class Enemy extends BodyComponent {
     
     final fixtureDef = FixtureDef(shape)
       ..isSensor = false // Not a sensor so it can collide
-      ..userData = this; // Store reference for collision detection
+      ..userData = "enemy"; // String identifier for collision detection
     
     body.createFixture(fixtureDef);
-    body.userData = this; // Store reference on body for collision detection
+    body.userData = "enemy"; // Also store on body for easier access
     
     return body;
   }

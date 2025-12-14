@@ -1,10 +1,13 @@
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:forge2d/forge2d.dart' as forge2d;
 import 'enemy.dart';
-import 'weapon.dart';
 import '../momentum_breaker_game.dart';
 
 class GameContactListener extends ContactListener {
   final MomentumBreakerGame game;
+  
+  // Queue for safe enemy removal (don't remove during physics step)
+  final List<Enemy> _enemiesToRemove = [];
 
   GameContactListener(this.game);
 
@@ -13,50 +16,83 @@ class GameContactListener extends ContactListener {
     final fixtureA = contact.fixtureA;
     final fixtureB = contact.fixtureB;
     
-    // Check if weapon hit enemy
-    Weapon? weapon;
-    Enemy? enemy;
+    final userDataA = fixtureA.body.userData;
+    final userDataB = fixtureB.body.userData;
     
-    if (fixtureA.body.userData is Weapon) {
-      weapon = fixtureA.body.userData as Weapon;
-    } else if (fixtureB.body.userData is Weapon) {
-      weapon = fixtureB.body.userData as Weapon;
+    // Case A: Weapon hits Enemy
+    if ((userDataA == "weapon" && userDataB == "enemy") ||
+        (userDataA == "enemy" && userDataB == "weapon")) {
+      _handleWeaponEnemyCollision(contact);
     }
     
-    if (fixtureA.body.userData is Enemy) {
-      enemy = fixtureA.body.userData as Enemy;
-    } else if (fixtureB.body.userData is Enemy) {
-      enemy = fixtureB.body.userData as Enemy;
-    }
-    
-    if (weapon != null && enemy != null && !enemy.isDestroyed) {
-      _handleWeaponEnemyCollision(weapon, enemy, contact);
+    // Case B: Enemy hits Player
+    if ((userDataA == "enemy" && userDataB == "player") ||
+        (userDataA == "player" && userDataB == "enemy")) {
+      _handleEnemyPlayerCollision();
     }
   }
 
-  void _handleWeaponEnemyCollision(Weapon weapon, Enemy enemy, Contact contact) {
-    // Calculate relative velocity at impact
-    final weaponVelocity = weapon.body.linearVelocity;
-    final enemyVelocity = enemy.body.linearVelocity;
-    final relativeVelocity = weaponVelocity - enemyVelocity;
-    final impactSpeed = relativeVelocity.length;
+  void _handleWeaponEnemyCollision(Contact contact) {
+    // Find which body is the weapon and which is the enemy
+    final bodyA = contact.fixtureA.body;
+    final bodyB = contact.fixtureB.body;
     
-    // Damage calculation based on impact speed
-    // Minimum speed threshold to deal damage
-    const minDamageSpeed = 50.0;
-    if (impactSpeed < minDamageSpeed) {
-      return; // Too slow to deal damage
+    forge2d.Body weaponBody;
+    Enemy? enemy;
+    
+    if (bodyA.userData == "weapon") {
+      weaponBody = bodyA;
+      // Find the enemy component from the game's enemy list
+      enemy = _findEnemyByBody(bodyB);
+    } else {
+      weaponBody = bodyB;
+      enemy = _findEnemyByBody(bodyA);
     }
     
-    // Damage scales with impact speed
-    // Base damage formula: (speed - minSpeed) * damageMultiplier
-    const damageMultiplier = 2.0;
-    final damage = (impactSpeed - minDamageSpeed) * damageMultiplier;
+    if (enemy == null || enemy.isDestroyed) {
+      return; // Enemy not found or already destroyed
+    }
     
-    enemy.takeDamage(damage);
+    // Get the linear velocity of the weapon
+    final weaponVelocity = weaponBody.linearVelocity;
+    final weaponSpeed = weaponVelocity.length;
     
-    // TODO: Add screen shake and particle effects here
-    // For now, we'll just apply the damage
+    // Rule: If weapon speed is greater than threshold (15.0), destroy enemy
+    const speedThreshold = 15.0;
+    if (weaponSpeed > speedThreshold) {
+      // Queue enemy for safe removal
+      if (!_enemiesToRemove.contains(enemy)) {
+        _enemiesToRemove.add(enemy);
+      }
+    }
+    // If speed is low, let physics handle the bounce (do nothing)
+  }
+  
+  void _handleEnemyPlayerCollision() {
+    // Game Over: Print statement and pause the game engine
+    print("Game Over! Enemy hit the player!");
+    game.pauseEngine();
+  }
+  
+  Enemy? _findEnemyByBody(forge2d.Body body) {
+    // Search through game's enemy list to find the enemy with this body
+    for (final enemy in game.enemies) {
+      if (enemy.body == body && !enemy.isDestroyed) {
+        return enemy;
+      }
+    }
+    return null;
+  }
+  
+  // Call this method from the game's update loop to safely remove enemies
+  void processEnemyRemovals() {
+    for (final enemy in _enemiesToRemove) {
+      if (!enemy.isDestroyed) {
+        enemy.isDestroyed = true;
+        game.onEnemyDestroyed(enemy);
+      }
+    }
+    _enemiesToRemove.clear();
   }
 
   @override

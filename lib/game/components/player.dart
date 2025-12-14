@@ -29,9 +29,11 @@ class Player extends BodyComponent {
     final fixtureDef = FixtureDef(shape)
       ..density = density
       ..friction = 0.3
-      ..restitution = 0.1;
+      ..restitution = 0.1
+      ..userData = "player"; // String identifier for collision detection
     
     body.createFixture(fixtureDef);
+    body.userData = "player"; // Also store on body for easier access
     
     return body;
   }

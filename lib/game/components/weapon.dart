@@ -36,10 +36,10 @@ class Weapon extends BodyComponent {
       ..density = baseDensity * currentMassMultiplier
       ..friction = friction
       ..restitution = 0.2
-      ..userData = this; // Store reference for collision detection
+      ..userData = "weapon"; // String identifier for collision detection
     
     body.createFixture(fixtureDef);
-    body.userData = this; // Also store on body for easier access
+    body.userData = "weapon"; // Also store on body for easier access
     
     return body;
   }

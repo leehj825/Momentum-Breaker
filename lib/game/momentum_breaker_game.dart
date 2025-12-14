@@ -18,7 +18,8 @@ class MomentumBreakerGame extends Forge2DGame
   late Player player;
   late Weapon weapon;
   late VirtualJoystick joystick;
-  final List<Enemy> enemies = [];
+  List<Enemy> get enemies => _enemies;
+  final List<Enemy> _enemies = [];
   bool isPaused = false;
   bool showUpgradeOverlay = false;
   int enemiesToSpawn = 5;
@@ -34,8 +35,8 @@ class MomentumBreakerGame extends Forge2DGame
     
     // Set up contact listener for collision detection
     contactListener = GameContactListener(this);
-    // The contact listener will be registered when the world is ready
-    // We'll set it up after the world is initialized
+    // Set the contact listener on the physics world
+    world.physicsWorld.setContactListener(contactListener);
     
     // Set up camera
     camera.viewfinder.anchor = Anchor.center;
@@ -71,7 +72,7 @@ class MomentumBreakerGame extends Forge2DGame
   }
 
   void _spawnEnemies() {
-    enemies.clear();
+    _enemies.clear();
     final spawnRadius = size.x * 0.3;
     final centerX = size.x / 2;
     final centerY = size.y / 2;
@@ -82,17 +83,17 @@ class MomentumBreakerGame extends Forge2DGame
       final y = centerY + spawnRadius * math.sin(angle);
       
       final enemy = Enemy(player: player, initialPosition: forge2d.Vector2(x, y));
-      enemies.add(enemy);
+      _enemies.add(enemy);
       add(enemy);
     }
   }
 
   void onEnemyDestroyed(Enemy enemy) {
-    enemies.remove(enemy);
+    _enemies.remove(enemy);
     enemy.removeFromParent();
     
     // Check victory condition
-    if (enemies.isEmpty && !showUpgradeOverlay) {
+    if (_enemies.isEmpty && !showUpgradeOverlay) {
       _showUpgradeOverlay();
     }
   }
@@ -151,6 +152,9 @@ class MomentumBreakerGame extends Forge2DGame
     super.update(dt);
     
     if (!isPaused && !showUpgradeOverlay) {
+      // Process enemy removals queued from collision detection
+      contactListener.processEnemyRemovals();
+      
       // Update camera to follow player smoothly
       final playerWorldPos = player.body.worldCenter;
       final currentCameraPos = camera.viewfinder.position;
