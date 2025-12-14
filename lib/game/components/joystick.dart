@@ -186,11 +186,15 @@ class VirtualJoystick extends PositionComponent
     final inputDirection = (_knobPosition - _joystickPosition) / maxDistance;
     final strength = (inputDirection.length).clamp(0.0, 1.0);
     
-    _updatePlayerInput(inputDirection, strength);
+    // Convert Flame Vector2 to Forge2D Vector2 for physics
+    final forge2dDirection = forge2d.Vector2(inputDirection.x, inputDirection.y);
+    _updatePlayerInput(forge2dDirection, strength);
   }
 
   void _updatePlayerInput(forge2d.Vector2 direction, [double strength = 0.0]) {
-    gameRef.player.applyInput(direction, strength);
+    if (gameRef.player.isMounted) {
+      gameRef.player.applyInput(direction, strength);
+    }
   }
 
 }
