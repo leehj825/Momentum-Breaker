@@ -69,18 +69,26 @@ class MomentumBreakerGame extends Forge2DGame
     // Don't add it yet - will add on game over
     
     // Create start button overlay (shown initially)
-    startOverlay = Component();
     final background = RectangleComponent(
       size: size,
-      paint: Paint()..color = Colors.black.withOpacity(0.7), // Slightly more opaque
+      position: Vector2.zero(),
+      paint: Paint()..color = Colors.black.withOpacity(0.7),
     );
-    startOverlay!.add(background);
+    background.anchor = Anchor.topLeft;
+    background.priority = 150; // High priority to render on top
+    await add(background);
+    
+    // Wait a frame to ensure size is set
+    await Future.delayed(Duration.zero);
     
     startButton = StartButton(
       onStart: _startGame,
     );
-    startOverlay!.add(startButton!);
-    await add(startOverlay!);
+    startButton!.priority = 200; // Even higher priority
+    await add(startButton!);
+    
+    // Store reference for removal
+    startOverlay = background;
     
     // Spawn initial enemies
     _spawnEnemies();
@@ -182,9 +190,13 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _startGame() {
     hasStarted = true;
-    // Remove start overlay (includes button and background)
+    // Remove start overlay background
     if (startOverlay != null && startOverlay!.isMounted) {
       startOverlay!.removeFromParent();
+    }
+    // Remove start button
+    if (startButton != null && startButton!.isMounted) {
+      startButton!.removeFromParent();
     }
     if (restartButton != null && restartButton!.isMounted) {
       restartButton!.removeFromParent(); // Hide restart button
@@ -258,8 +270,19 @@ class MomentumBreakerGame extends Forge2DGame
     _spawnEnemies();
     
     // Show start button overlay and pause game
-    if (startOverlay != null && !startOverlay!.isMounted) {
-      add(startOverlay!);
+    final background = RectangleComponent(
+      size: size,
+      position: Vector2.zero(),
+      paint: Paint()..color = Colors.black.withOpacity(0.7),
+    );
+    background.anchor = Anchor.topLeft;
+    background.priority = 150;
+    await add(background);
+    startOverlay = background;
+    
+    if (startButton != null && !startButton!.isMounted) {
+      startButton!.priority = 200;
+      await add(startButton!);
     }
     if (restartButton != null && restartButton!.isMounted) {
       restartButton!.removeFromParent();
