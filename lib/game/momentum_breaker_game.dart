@@ -116,7 +116,8 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _spawnEnemies() {
     _enemies.clear();
-    final spawnRadius = size.x * 0.3;
+    // Increase spawn radius to give player more breathing room at start
+    final spawnRadius = size.x * 0.4; // Increased from 0.3 to 0.4
     final centerX = size.x / 2;
     final centerY = size.y / 2;
     

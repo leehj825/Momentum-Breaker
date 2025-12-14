@@ -20,17 +20,22 @@ class Enemy extends BodyComponent {
   @override
   Body createBody() {
     final bodyDef = BodyDef(
-      type: BodyType.kinematic, // Kinematic so it can move but not be affected by physics
+      type: BodyType.dynamic, // Dynamic so it can move and interact with physics properly
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
+      fixedRotation: true, // Lock rotation so enemies don't roll around
     );
     
     final body = world.createBody(bodyDef);
     
-    final halfSize = size / 2;
+    // Shrink hitbox: make physics shape smaller than visual size (3px buffer on each side)
+    final halfSize = (size - 6) / 2;
     final shape = PolygonShape()
       ..setAsBox(halfSize, halfSize, forge2d.Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
+      ..density = 1.0 // Add density for dynamic body
+      ..friction = 0.3
+      ..restitution = 0.1
       ..isSensor = false // Not a sensor so it can collide
       ..userData = "enemy"; // String identifier for collision detection
     
@@ -67,15 +72,19 @@ class Enemy extends BodyComponent {
     
     // Stop movement if game isn't playing or enemy is destroyed
     final game = parent as MomentumBreakerGame;
-    if (!game.isPlaying || isDestroyed) return;
+    if (!game.isPlaying || isDestroyed) {
+      // Stop velocity when not playing
+      body.linearVelocity = forge2d.Vector2.zero();
+      return;
+    }
     
-    // Move towards player
+    // Move towards player using velocity (proper physics instead of teleportation)
     final playerPos = player.body.worldCenter;
     final enemyPos = body.worldCenter;
     final direction = (playerPos - enemyPos).normalized();
     
-    final velocity = direction * speed * dt;
-    body.setTransform(body.position + velocity, body.angle);
+    // Set velocity instead of using setTransform
+    body.linearVelocity = direction * speed;
   }
 
   void takeDamage(double damage) {

@@ -27,8 +27,10 @@ class Player extends BodyComponent {
     body.linearVelocity = forge2d.Vector2.zero();
     body.angularVelocity = 0.0;
     
+    // Shrink hitbox: make physics shape smaller than visual size (4px buffer)
+    final physicsRadius = radius - 4.0;
     final shape = CircleShape();
-    shape.radius = radius;
+    shape.radius = physicsRadius; // Use smaller radius for physics
     
     final fixtureDef = FixtureDef(shape)
       ..density = density
