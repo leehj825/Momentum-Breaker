@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 class Player extends BodyComponent {
   static const double radius = 15.0;
-  static const double density = 1.0;
-  static const double linearDamping = 4.0; // Reduced damping to allow momentum transfer to weapon
+  static const double density = 2.0; // Increased for more authority over weapon
+  static const double linearDamping = 4.0; // Good control
   
   forge2d.Vector2? inputDirection;
   final forge2d.Vector2 initialPosition;

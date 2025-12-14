@@ -243,7 +243,7 @@ class MomentumBreakerGame extends Forge2DGame
     
     // Reset weapon upgrades
     weapon.currentMassMultiplier = 1.0;
-    weapon.currentChainLengthMultiplier = 1.5; // Base chain length
+    weapon.currentChainLengthMultiplier = 1.0; // Base multiplier (1.2 rope length is applied in createJoint)
     weapon.hasSpikes = false;
     
     // Remove spikes visually if they exist (spikes are RectangleComponents added after initial load)

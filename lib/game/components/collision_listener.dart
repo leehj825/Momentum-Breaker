@@ -57,8 +57,9 @@ class GameContactListener extends ContactListener {
     final weaponVelocity = weaponBody.linearVelocity;
     final weaponSpeed = weaponVelocity.length;
     
-    // Rule: If weapon speed is greater than threshold (15.0), destroy enemy
-    const speedThreshold = 15.0;
+    // Rule: If weapon speed is greater than threshold (8.0), destroy enemy
+    // Lower threshold since weapon now has damping and moves slower
+    const speedThreshold = 8.0;
     if (weaponSpeed > speedThreshold) {
       // Queue enemy for safe removal
       if (!_enemiesToRemove.contains(enemy)) {

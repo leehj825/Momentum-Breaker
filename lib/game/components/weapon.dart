@@ -6,15 +6,16 @@ import 'package:flutter/material.dart';
 import 'player.dart';
 
 class Weapon extends BodyComponent {
-  static const double baseRadius = 25.0;
-  static const double baseDensity = 20.0; // Much heavier for more momentum
+  static const double baseRadius = 12.0; // Smaller physics radius for better balance
+  static const double visualRadius = 25.0; // Visual size stays larger
+  static const double baseDensity = 3.0; // Heavy enough to hit, light enough to pull
   static const double friction = 0.0; // No friction for free swinging
   
   final Player player;
   final forge2d.Vector2 initialPosition;
   forge2d.RopeJoint? joint;
   double currentMassMultiplier = 1.0;
-  double currentChainLengthMultiplier = 1.5; // Chain length multiplier for swings
+  double currentChainLengthMultiplier = 1.0; // Base multiplier (1.2 rope length is applied in createJoint)
   bool hasSpikes = false;
   
   Weapon({required this.player, required this.initialPosition});
@@ -24,7 +25,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 0.02, // Drastically reduced damping for longer swings
+      linearDamping: 0.3, // Some air resistance to prevent chaotic swinging
       angularDamping: 0.0, // No angular damping for free rotation
     );
     
@@ -53,9 +54,9 @@ class Weapon extends BodyComponent {
   Future<void> onLoad() async {
     await super.onLoad();
     
-    // Add visual representation
+    // Add visual representation (use visualRadius for visuals, baseRadius for physics)
     final circle = CircleComponent(
-      radius: baseRadius,
+      radius: visualRadius,
       paint: Paint()..color = Colors.red[900]!,
     );
     circle.anchor = Anchor.center;
@@ -63,7 +64,7 @@ class Weapon extends BodyComponent {
     
     // Add inner circle
     final innerCircle = CircleComponent(
-      radius: baseRadius * 0.7,
+      radius: visualRadius * 0.7,
       paint: Paint()..color = Colors.red[700]!,
     );
     innerCircle.anchor = Anchor.center;
@@ -74,8 +75,9 @@ class Weapon extends BodyComponent {
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
-    // Calculate maximum chain length (allows slack for swinging)
-    final maxLength = distance * currentChainLengthMultiplier;
+    // Calculate maximum chain length (slightly tighter rope for better control)
+    // Base is 1.2, then apply multiplier for upgrades
+    final maxLength = distance * 1.2 * currentChainLengthMultiplier;
     
     // Use RopeJoint instead of DistanceJoint for chain-like behavior
     // RopeJointDef uses default constructor, then set properties
@@ -98,14 +100,14 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: oldPos,
-      linearDamping: 0.02, // Match new damping value
+      linearDamping: 0.3, // Match new damping value
       angularDamping: 0.0,
     );
     
     body = world.createBody(bodyDef);
     
     final shape = CircleShape();
-    shape.radius = baseRadius;
+    shape.radius = baseRadius; // Use smaller physics radius
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
@@ -126,7 +128,8 @@ class Weapon extends BodyComponent {
       final playerPos = player.body.worldCenter;
       final weaponPos = body.worldCenter;
       final distance = (weaponPos - playerPos).length;
-      final newMaxLength = distance * currentChainLengthMultiplier;
+      // Use 1.2 base multiplier for tighter rope control, then apply upgrade multiplier
+      final newMaxLength = distance * 1.2 * currentChainLengthMultiplier;
       
       // Destroy old joint
       world.destroyJoint(joint!);
@@ -150,7 +153,7 @@ class Weapon extends BodyComponent {
     // Add visual spikes
     for (int i = 0; i < 8; i++) {
       final angle = (i / 8) * 2 * math.pi;
-      final spikeLength = baseRadius * 0.4;
+      final spikeLength = visualRadius * 0.4; // Use visual radius for spike positioning
       final spikeX = spikeLength * math.cos(angle);
       final spikeY = spikeLength * math.sin(angle);
       

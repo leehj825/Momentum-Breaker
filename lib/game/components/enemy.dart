@@ -22,6 +22,7 @@ class Enemy extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic, // Dynamic so it can move and interact with physics properly
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
+      linearDamping: 1.0, // So they don't slide forever if pushed
       fixedRotation: true, // Lock rotation so enemies don't roll around
     );
     
@@ -33,7 +34,7 @@ class Enemy extends BodyComponent {
       ..setAsBox(halfSize, halfSize, forge2d.Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
-      ..density = 1.0 // Add density for dynamic body
+      ..density = 0.5 // Lighter than weapon so they fly when hit
       ..friction = 0.3
       ..restitution = 0.1
       ..isSensor = false // Not a sensor so it can collide
@@ -78,13 +79,16 @@ class Enemy extends BodyComponent {
       return;
     }
     
-    // Move towards player using velocity (proper physics instead of teleportation)
+    // Move towards player using force (allows knockback to work)
     final playerPos = player.body.worldCenter;
     final enemyPos = body.worldCenter;
     final direction = (playerPos - enemyPos).normalized();
     
-    // Set velocity instead of using setTransform
-    body.linearVelocity = direction * speed;
+    // Only apply movement force if moving slower than max speed
+    // This allows knockback (high speed) to decay naturally
+    if (body.linearVelocity.length < speed / 2) {
+      body.applyForce(direction * speed * body.mass * 10);
+    }
   }
 
   void takeDamage(double damage) {
