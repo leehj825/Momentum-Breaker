@@ -4,7 +4,7 @@ import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
-class VirtualJoystick extends Component 
+class VirtualJoystick extends PositionComponent 
     with HasGameRef<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
   static const double joystickRadius = 60.0;
   static const double knobRadius = 25.0;
@@ -14,6 +14,7 @@ class VirtualJoystick extends Component
   Vector2 _joystickPosition = Vector2.zero();
   Vector2 _knobPosition = Vector2.zero();
   bool _isActive = false;
+  Vector2? _dragStartPosition;
 
   @override
   Future<void> onLoad() async {
@@ -25,17 +26,28 @@ class VirtualJoystick extends Component
       gameRef.size.y - joystickRadius - 20,
     );
     _knobPosition = _joystickPosition;
+    
+    // Set component position and size so it can receive events
+    position = _joystickPosition;
+    size = Vector2(joystickRadius * 2 + 40, joystickRadius * 2 + 40);
+    anchor = Anchor.center;
+    
+    // Ensure the component can receive pointer events
+    priority = 100; // High priority to receive events first
   }
 
   @override
   void render(Canvas canvas) {
+    // Draw relative to component center (which is at _joystickPosition)
+    final center = Vector2(size.x / 2, size.y / 2);
+    
     // Draw joystick base
     final basePaint = Paint()
       ..color = Colors.white.withOpacity(0.3)
       ..style = PaintingStyle.fill;
     
     canvas.drawCircle(
-      _joystickPosition.toOffset(),
+      center.toOffset(),
       joystickRadius,
       basePaint,
     );
@@ -47,18 +59,19 @@ class VirtualJoystick extends Component
       ..strokeWidth = 3.0;
     
     canvas.drawCircle(
-      _joystickPosition.toOffset(),
+      center.toOffset(),
       joystickRadius,
       borderPaint,
     );
     
-    // Draw knob
+    // Draw knob (relative to component center)
+    final knobOffset = _knobPosition - _joystickPosition;
     final knobPaint = Paint()
       ..color = Colors.white.withOpacity(0.7)
       ..style = PaintingStyle.fill;
     
     canvas.drawCircle(
-      _knobPosition.toOffset(),
+      (center + knobOffset).toOffset(),
       knobRadius,
       knobPaint,
     );
@@ -70,23 +83,32 @@ class VirtualJoystick extends Component
       ..strokeWidth = 2.0;
     
     canvas.drawCircle(
-      _knobPosition.toOffset(),
+      (center + knobOffset).toOffset(),
       knobRadius,
       knobBorderPaint,
     );
+  }
+  
+  @override
+  bool containsLocalPoint(Vector2 point) {
+    // Check if point is within the joystick area
+    final center = Vector2(size.x / 2, size.y / 2);
+    final distance = (point - center).length;
+    return distance <= joystickRadius * 2;
   }
 
   @override
   bool onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    // Get position in game coordinates (works for both touch and mouse)
-    final localPos = event.localPosition;
-    final distance = (localPos - _joystickPosition).length;
+    // Get position in canvas coordinates (world space)
+    final canvasPos = event.canvasPosition;
+    final distance = (canvasPos - _joystickPosition).length;
     
     if (distance <= joystickRadius * 2) {
-      _touchPosition = localPos;
+      _touchPosition = canvasPos;
+      _dragStartPosition = canvasPos;
       _isActive = true;
-      _updateKnobPosition(localPos);
+      _updateKnobPosition(canvasPos);
       return true;
     }
     
@@ -96,12 +118,12 @@ class VirtualJoystick extends Component
   @override
   bool onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    if (!_isActive) return false;
+    if (!_isActive || _dragStartPosition == null) return false;
     
-    // For DragUpdateEvent, use canvasEndPosition which gives the current position
-    final localPos = event.canvasEndPosition;
-    _touchPosition = localPos;
-    _updateKnobPosition(localPos);
+    // Use canvasEndPosition which gives current position in canvas coordinates
+    final canvasPos = event.canvasEndPosition;
+    _touchPosition = canvasPos;
+    _updateKnobPosition(canvasPos);
     return true;
   }
 
@@ -112,6 +134,7 @@ class VirtualJoystick extends Component
     
     _isActive = false;
     _touchPosition = null;
+    _dragStartPosition = null;
     _knobPosition = _joystickPosition;
     _updatePlayerInput(forge2d.Vector2.zero());
     return true;
@@ -120,14 +143,16 @@ class VirtualJoystick extends Component
   @override
   bool onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-    // Handle mouse click/tap on joystick area
-    final localPos = event.localPosition;
-    final distance = (localPos - _joystickPosition).length;
+    // Handle mouse click/tap on joystick area (for single clicks without drag)
+    // Use canvasPosition which is in world/canvas coordinates
+    final canvasPos = event.canvasPosition;
+    final distance = (canvasPos - _joystickPosition).length;
     
     if (distance <= joystickRadius * 2) {
-      _touchPosition = localPos;
+      _touchPosition = canvasPos;
+      _dragStartPosition = canvasPos;
       _isActive = true;
-      _updateKnobPosition(localPos);
+      _updateKnobPosition(canvasPos);
       return true;
     }
     
@@ -141,6 +166,7 @@ class VirtualJoystick extends Component
     
     _isActive = false;
     _touchPosition = null;
+    _dragStartPosition = null;
     _knobPosition = _joystickPosition;
     _updatePlayerInput(forge2d.Vector2.zero());
     return true;
