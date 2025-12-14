@@ -213,6 +213,9 @@ class VirtualJoystick extends PositionComponent
   }
 
   void _updatePlayerInput(forge2d.Vector2 direction, [double strength = 0.0]) {
+    // Prevent input processing when the game is not playing
+    if (!gameRef.isPlaying) return;
+    
     if (gameRef.player.isMounted) {
       gameRef.player.applyInput(direction, strength);
     }

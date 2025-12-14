@@ -65,7 +65,9 @@ class Enemy extends BodyComponent {
   void update(double dt) {
     super.update(dt);
     
-    if (isDestroyed) return;
+    // Stop movement if game isn't playing or enemy is destroyed
+    final game = parent as MomentumBreakerGame;
+    if (!game.isPlaying || isDestroyed) return;
     
     // Move towards player
     final playerPos = player.body.worldCenter;

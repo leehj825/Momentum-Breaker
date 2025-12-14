@@ -35,6 +35,9 @@ class MomentumBreakerGame extends Forge2DGame
   RestartButton? restartButton;
   StartButton? startButton;
   Component? startOverlay;
+  
+  // Getter to check if game is actively playing
+  bool get isPlaying => hasStarted && !isGameOver && !isPaused && !showUpgradeOverlay;
 
   @override
   Future<void> onLoad() async {
@@ -72,16 +75,19 @@ class MomentumBreakerGame extends Forge2DGame
     // Don't add it yet - will add on game over
     
     // Create start button overlay (shown initially)
-    // Add to camera viewfinder so it's in screen space
+    // Add directly to game with very high priority
     final background = _StartOverlayBackground();
-    background.priority = 150;
-    await camera.viewfinder.add(background);
+    background.priority = 1000; // Very high priority
+    await add(background);
     
     startButton = StartButton(
       onStart: _startGame,
     );
-    startButton!.priority = 200; // Even higher priority
-    await camera.viewfinder.add(startButton!);
+    startButton!.priority = 1001; // Even higher priority
+    await add(startButton!);
+    
+    // Debug: verify button was added
+    print('StartButton added to game. isMounted: ${startButton!.isMounted}, position: ${startButton!.position}, size: ${startButton!.size}');
     
     // Store reference for removal
     startOverlay = background;
@@ -89,8 +95,8 @@ class MomentumBreakerGame extends Forge2DGame
     // Spawn initial enemies
     _spawnEnemies();
     
-    // Pause the game initially until start button is clicked
-    pauseEngine();
+    // Game starts in "not playing" state (hasStarted = false)
+    // Engine remains running so UI can render
   }
 
   Future<void> _initializePlayerAndWeapon() async {
@@ -137,7 +143,7 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _showUpgradeOverlay() {
     showUpgradeOverlay = true;
-    pauseEngine();
+    // Engine keeps running, game logic is paused via isPlaying getter
     
     // Remove any existing overlay first
     children.whereType<UpgradeOverlay>().forEach((existingOverlay) {
@@ -150,7 +156,7 @@ class MomentumBreakerGame extends Forge2DGame
         overlay.removeFromParent();
         _applyUpgrade(upgradeType);
         showUpgradeOverlay = false;
-        resumeEngine();
+        // Engine keeps running, game logic resumes via isPlaying getter
         _nextStage();
       },
     );
@@ -186,18 +192,18 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _startGame() {
     hasStarted = true;
-    // Remove start overlay background from camera viewfinder
+    // Remove start overlay background
     if (startOverlay != null && startOverlay!.isMounted) {
       startOverlay!.removeFromParent();
     }
-    // Remove start button from camera viewfinder
+    // Remove start button
     if (startButton != null && startButton!.isMounted) {
       startButton!.removeFromParent();
     }
     if (restartButton != null && restartButton!.isMounted) {
       restartButton!.removeFromParent(); // Hide restart button
     }
-    resumeEngine();
+    // Engine keeps running, game logic starts via isPlaying getter
   }
 
   Future<void> _restartGame() async {
@@ -267,23 +273,23 @@ class MomentumBreakerGame extends Forge2DGame
     
     // Show start button overlay and pause game
     final background = _StartOverlayBackground();
-    background.priority = 150;
-    await camera.viewfinder.add(background);
+    background.priority = 1000;
+    await add(background);
     startOverlay = background;
     
     if (startButton != null && !startButton!.isMounted) {
-      startButton!.priority = 200;
-      await camera.viewfinder.add(startButton!);
+      startButton!.priority = 1001;
+      await add(startButton!);
     }
     if (restartButton != null && restartButton!.isMounted) {
       restartButton!.removeFromParent();
     }
-    pauseEngine();
+    // Engine keeps running, game logic is paused via isPlaying getter (hasStarted = false)
   }
 
   void onGameOver() {
     isGameOver = true;
-    pauseEngine();
+    // Engine keeps running, game logic is paused via isPlaying getter
     // Show restart button on game over
     if (restartButton != null && !restartButton!.isMounted) {
       add(restartButton!);
@@ -295,7 +301,8 @@ class MomentumBreakerGame extends Forge2DGame
   void update(double dt) {
     super.update(dt);
     
-    if (!isPaused && !showUpgradeOverlay && !isGameOver && hasStarted) {
+    // Only run game logic when playing
+    if (isPlaying) {
       // Process enemy removals queued from collision detection
       contactListener.processEnemyRemovals();
       
@@ -323,7 +330,7 @@ class _StartOverlayBackground extends RectangleComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    paint = Paint()..color = Colors.black.withOpacity(0.7);
+    paint = Paint()..color = Colors.black.withOpacity(0.8);
     anchor = Anchor.topLeft;
     position = Vector2.zero();
   }
@@ -331,16 +338,30 @@ class _StartOverlayBackground extends RectangleComponent
   @override
   void onMount() {
     super.onMount();
+    _updateSize();
+  }
+  
+  void _updateSize() {
     if (gameRef.size.x > 0 && gameRef.size.y > 0) {
       size = gameRef.size;
+    } else {
+      // Fallback size
+      size = Vector2(800, 600);
     }
   }
   
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    if (size.x > 0 && size.y > 0) {
-      this.size = size;
+    _updateSize();
+  }
+  
+  @override
+  void update(double dt) {
+    super.update(dt);
+    // Ensure size is set
+    if (size.x == 0 || size.y == 0) {
+      _updateSize();
     }
   }
 }

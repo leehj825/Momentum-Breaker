@@ -6,6 +6,7 @@ import '../momentum_breaker_game.dart';
 class StartButton extends RectangleComponent 
     with TapCallbacks, HasGameRef<MomentumBreakerGame> {
   final VoidCallback onStart;
+  bool _hasRendered = false;
 
   StartButton({
     required this.onStart,
@@ -15,13 +16,17 @@ class StartButton extends RectangleComponent
   Future<void> onLoad() async {
     await super.onLoad();
     
-    // Set size first
-    size = Vector2(200, 80); // Larger button for better visibility
+    // Set size and position - model after UpgradeButton
+    size = Vector2(250, 100);
     anchor = Anchor.center;
     
-    paint = Paint()..color = Colors.green.withOpacity(0.95); // More opaque
+    // Use paint property like UpgradeButton does
+    paint = Paint()..color = Colors.green.withOpacity(0.9);
     
-    priority = 200; // High priority to receive events
+    priority = 1001; // Very high priority to render on top and receive events
+    
+    // Debug: print to verify button is created
+    print('StartButton created with size: $size');
   }
   
   @override
@@ -33,11 +38,19 @@ class StartButton extends RectangleComponent
   
   void _updatePosition() {
     final gameSize = gameRef.size;
+    print('StartButton _updatePosition: gameSize=$gameSize, current position=$position');
     if (gameSize.x > 0 && gameSize.y > 0) {
       position = Vector2(gameSize.x / 2, gameSize.y / 2);
+      print('StartButton positioned at center: $position');
     } else {
-      // Fallback: use a reasonable default position
+      // Try a fixed position that should be visible
       position = Vector2(400, 300); // Center of typical screen
+      print('StartButton using fallback position: $position');
+    }
+    // Force a very large size to ensure visibility
+    if (size.x < 200) {
+      size = Vector2(300, 120);
+      print('StartButton size forced to: $size');
     }
   }
   
@@ -59,10 +72,14 @@ class StartButton extends RectangleComponent
 
   @override
   void render(Canvas canvas) {
-    // Draw button background (super.render draws the rectangle)
-    // Make absolutely sure it renders by using a bright color
-    final bgPaint = Paint()..color = Colors.green;
-    canvas.drawRect(size.toRect(), bgPaint);
+    // Debug: print when rendering
+    if (!_hasRendered) {
+      print('StartButton render called! position=$position, size=$size');
+      _hasRendered = true;
+    }
+    
+    // Draw button background using super.render (like UpgradeButton)
+    super.render(canvas);
     
     // Draw border with thicker line
     final borderPaint = Paint()
@@ -72,7 +89,7 @@ class StartButton extends RectangleComponent
     
     canvas.drawRect(size.toRect(), borderPaint);
     
-    // Draw text with larger font
+    // Draw text with larger font - make it very visible
     final textPainter = TextPainter(
       text: const TextSpan(
         text: 'START GAME',
@@ -101,6 +118,12 @@ class StartButton extends RectangleComponent
         (size.y - textPainter.height) / 2,
       ),
     );
+  }
+  
+  @override
+  bool containsLocalPoint(Vector2 point) {
+    // Make sure hit detection works
+    return point.x >= 0 && point.x <= size.x && point.y >= 0 && point.y <= size.y;
   }
 
   @override
