@@ -24,7 +24,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 2.0, // Moderate damping
+      linearDamping: 0.5, // Low damping to maintain momentum and swing
     );
     
     final body = world.createBody(bodyDef);
@@ -34,8 +34,8 @@ class Weapon extends BodyComponent {
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
-      ..friction = friction
-      ..restitution = 0.2
+      ..friction = 0.2 // Lower friction for more sliding/swinging
+      ..restitution = 0.3 // Slightly higher bounce
       ..userData = "weapon"; // String identifier for collision detection
     
     body.createFixture(fixtureDef);
@@ -69,7 +69,8 @@ class Weapon extends BodyComponent {
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
-    final baseChainLength = distance * currentChainLengthMultiplier;
+    // Make chain length longer for more swing radius
+    final baseChainLength = (distance * 1.2) * currentChainLengthMultiplier;
     
     final jointDef = DistanceJointDef()
       ..initialize(
@@ -79,8 +80,8 @@ class Weapon extends BodyComponent {
         weaponPos,
       )
       ..length = baseChainLength
-      ..frequencyHz = 0.0 // No spring effect
-      ..dampingRatio = 0.0;
+      ..frequencyHz = 0.0 // No spring effect - allows free swinging
+      ..dampingRatio = 0.0; // No damping - maintains momentum
     
     joint = DistanceJoint(jointDef);
     world.createJoint(joint!);

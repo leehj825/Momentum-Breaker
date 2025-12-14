@@ -62,9 +62,9 @@ class Player extends BodyComponent {
   void applyInput(forge2d.Vector2 direction, double strength) {
     if (direction.length > 0 && strength > 0) {
       final normalized = direction.normalized();
-      // Apply impulse every frame for continuous movement
+      // Apply stronger impulse to generate more momentum for weapon swinging
       // Using impulse scaled by mass for consistent feel
-      final impulseMagnitude = strength * 50.0; // Impulse multiplier
+      final impulseMagnitude = strength * 80.0; // Increased for more momentum
       final impulse = forge2d.Vector2(
         normalized.x * impulseMagnitude * body.mass,
         normalized.y * impulseMagnitude * body.mass,

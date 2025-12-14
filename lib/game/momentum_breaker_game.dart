@@ -62,8 +62,8 @@ class MomentumBreakerGame extends Forge2DGame
     player = Player(initialPosition: playerPos);
     await add(player);
     
-    // Weapon starts slightly offset
-    final weaponPos = forge2d.Vector2(size.x / 2 + 50, size.y / 2);
+    // Weapon starts further away to allow more swing room
+    final weaponPos = forge2d.Vector2(size.x / 2 + 80, size.y / 2);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
