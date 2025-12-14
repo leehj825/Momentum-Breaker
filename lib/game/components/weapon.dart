@@ -10,28 +10,26 @@ class Weapon extends BodyComponent {
   static const double friction = 0.5;
   
   final Player player;
+  final Vector2 initialPosition;
   DistanceJoint? joint;
   double currentMassMultiplier = 1.0;
   double currentChainLengthMultiplier = 1.0;
   bool hasSpikes = false;
   
-  Weapon({
-    required Vector2 position,
-    required this.player,
-  }) : super(position: position);
+  Weapon({required this.player, required this.initialPosition});
 
   @override
   Body createBody() {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
-      position: position,
+      position: Vector2(initialPosition.x, initialPosition.y),
       linearDamping: 2.0, // Moderate damping
     );
     
     final body = world.createBody(bodyDef);
     
     final shape = CircleShape();
-    shape.radius = baseRadius / worldScale;
+    shape.radius = baseRadius;
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
@@ -67,16 +65,14 @@ class Weapon extends BodyComponent {
   }
 
   Future<void> createJoint() async {
-    if (player.body == null) return;
-    
-    final playerPos = player.body!.worldCenter;
+    final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
     final baseChainLength = distance * currentChainLengthMultiplier;
     
     final jointDef = DistanceJointDef()
       ..initialize(
-        player.body!,
+        player.body,
         body,
         playerPos,
         weaponPos,
@@ -104,7 +100,7 @@ class Weapon extends BodyComponent {
     body = world.createBody(bodyDef);
     
     final shape = CircleShape();
-    shape.radius = baseRadius / worldScale;
+    shape.radius = baseRadius;
     
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
@@ -116,15 +112,13 @@ class Weapon extends BodyComponent {
     body.userData = this;
     
     // Recreate joint
-    if (player.body != null) {
-      createJoint();
-    }
+    createJoint();
   }
 
   void updateChainLength(double multiplier) {
     currentChainLengthMultiplier = multiplier;
-    if (joint != null && player.body != null) {
-      final playerPos = player.body!.worldCenter;
+    if (joint != null) {
+      final playerPos = player.body.worldCenter;
       final weaponPos = body.worldCenter;
       final distance = (weaponPos - playerPos).length;
       final newLength = distance * currentChainLengthMultiplier;
@@ -135,7 +129,7 @@ class Weapon extends BodyComponent {
       // Create new joint with updated length
       final jointDef = DistanceJointDef()
         ..initialize(
-          player.body!,
+          player.body,
           body,
           playerPos,
           weaponPos,

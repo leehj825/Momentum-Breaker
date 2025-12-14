@@ -8,21 +8,22 @@ class Player extends BodyComponent {
   static const double linearDamping = 10.0; // High damping for quick stops
   
   Vector2? inputDirection;
+  final Vector2 initialPosition;
 
-  Player({required Vector2 position}) : super(position: position);
+  Player({required this.initialPosition});
 
   @override
   Body createBody() {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
-      position: position,
+      position: Vector2(initialPosition.x, initialPosition.y),
       linearDamping: linearDamping,
     );
     
     final body = world.createBody(bodyDef);
     
     final shape = CircleShape();
-    shape.radius = radius / worldScale;
+    shape.radius = radius;
     
     final fixtureDef = FixtureDef(shape)
       ..density = density
@@ -57,7 +58,8 @@ class Player extends BodyComponent {
 
   void applyInput(Vector2 direction, double strength) {
     if (direction.length > 0) {
-      final force = direction.normalized() * strength * 1000.0;
+      final normalized = direction.normalized();
+      final force = Vector2(normalized.x * strength * 1000.0, normalized.y * strength * 1000.0);
       body.applyLinearImpulse(force);
     }
   }

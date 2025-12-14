@@ -142,5 +142,8 @@ class UpgradeButton extends RectangleComponent with TapCallbacks {
     onTap();
     return true;
   }
+  
+  @override
+  bool hasTapCallbacks() => true;
 }
 

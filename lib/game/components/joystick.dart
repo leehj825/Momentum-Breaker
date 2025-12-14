@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
-import 'player.dart';
 
 class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
   static const double joystickRadius = 60.0;
@@ -94,8 +93,9 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
   bool onDragUpdate(DragUpdateEvent event) {
     if (!_isActive) return false;
     
-    _touchPosition = event.localPosition;
-    _updateKnobPosition(event.localPosition);
+    final localPos = event.localPosition;
+    _touchPosition = localPos;
+    _updateKnobPosition(localPos);
     return true;
   }
 
@@ -128,9 +128,7 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
   }
 
   void _updatePlayerInput(Vector2 direction, [double strength = 0.0]) {
-    if (gameRef.player.body != null) {
-      gameRef.player.applyInput(direction, strength);
-    }
+    gameRef.player.applyInput(direction, strength);
   }
 
   @override

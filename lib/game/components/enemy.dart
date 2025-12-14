@@ -10,25 +10,24 @@ class Enemy extends BodyComponent {
   static const double health = 100.0;
   
   final Player player;
+  final Vector2 initialPosition;
   double currentHealth = health;
   bool isDestroyed = false;
 
-  Enemy({
-    required Vector2 position,
-    required this.player,
-  }) : super(position: position);
+  Enemy({required this.player, required this.initialPosition});
 
   @override
   Body createBody() {
     final bodyDef = BodyDef(
       type: BodyType.kinematic, // Kinematic so it can move but not be affected by physics
-      position: position,
+      position: Vector2(initialPosition.x, initialPosition.y),
     );
     
     final body = world.createBody(bodyDef);
     
+    final halfSize = size / 2;
     final shape = PolygonShape()
-      ..setAsBox(size / 2 / worldScale, size / 2 / worldScale);
+      ..setAsBox(halfSize, halfSize, Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
       ..isSensor = false // Not a sensor so it can collide
@@ -65,10 +64,10 @@ class Enemy extends BodyComponent {
   void update(double dt) {
     super.update(dt);
     
-    if (isDestroyed || player.body == null) return;
+    if (isDestroyed) return;
     
     // Move towards player
-    final playerPos = player.body!.worldCenter;
+    final playerPos = player.body.worldCenter;
     final enemyPos = body.worldCenter;
     final direction = (playerPos - enemyPos).normalized();
     

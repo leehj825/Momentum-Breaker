@@ -3,13 +3,12 @@ import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
-class Arena extends Forge2DComponent {
+class Arena extends Forge2DComponent with HasGameRef<MomentumBreakerGame> {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
     
-    final game = parent as MomentumBreakerGame;
-    final worldSize = game.size;
+    final worldSize = gameRef.size;
     
     // Create walls around the arena
     final wallThickness = 20.0;
@@ -52,8 +51,10 @@ class Arena extends Forge2DComponent {
     
     final wallBody = world.createBody(wallDef);
     
+    final halfWidth = size.x / 2;
+    final halfHeight = size.y / 2;
     final shape = PolygonShape()
-      ..setAsBox(size.x / 2, size.y / 2);
+      ..setAsBox(halfWidth, halfHeight, Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
       ..friction = 0.3

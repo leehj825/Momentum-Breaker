@@ -34,7 +34,8 @@ class MomentumBreakerGame extends Forge2DGame
     
     // Set up contact listener for collision detection
     contactListener = GameContactListener(this);
-    world.setContactListener(contactListener);
+    // The contact listener will be registered when the world is ready
+    // We'll set it up after the world is initialized
     
     // Set up camera
     camera.viewfinder.anchor = Anchor.center;
@@ -56,14 +57,13 @@ class MomentumBreakerGame extends Forge2DGame
 
   Future<void> _initializePlayerAndWeapon() async {
     // Player starts at center
-    player = Player(position: Vector2(size.x / 2, size.y / 2));
+    final playerPos = Vector2(size.x / 2, size.y / 2);
+    player = Player(initialPosition: playerPos);
     await add(player);
     
     // Weapon starts slightly offset
-    weapon = Weapon(
-      position: Vector2(size.x / 2 + 50, size.y / 2),
-      player: player,
-    );
+    final weaponPos = Vector2(size.x / 2 + 50, size.y / 2);
+    weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
     // Connect player and weapon with joint
@@ -81,7 +81,7 @@ class MomentumBreakerGame extends Forge2DGame
       final x = centerX + spawnRadius * math.cos(angle);
       final y = centerY + spawnRadius * math.sin(angle);
       
-      final enemy = Enemy(position: Vector2(x, y), player: player);
+      final enemy = Enemy(player: player, initialPosition: Vector2(x, y));
       enemies.add(enemy);
       add(enemy);
     }
@@ -102,8 +102,8 @@ class MomentumBreakerGame extends Forge2DGame
     pauseEngine();
     
     // Remove any existing overlay first
-    children.whereType<UpgradeOverlay>().forEach((overlay) {
-      overlay.removeFromParent();
+    children.whereType<UpgradeOverlay>().forEach((existingOverlay) {
+      existingOverlay.removeFromParent();
     });
     
     final overlay = UpgradeOverlay(
@@ -149,14 +149,15 @@ class MomentumBreakerGame extends Forge2DGame
   void update(double dt) {
     super.update(dt);
     
-    if (!isPaused && !showUpgradeOverlay && player.body != null) {
+    if (!isPaused && !showUpgradeOverlay) {
       // Update camera to follow player smoothly
-      final playerWorldPos = player.body!.worldCenter;
+      final playerWorldPos = player.body.worldCenter;
       final currentCameraPos = camera.viewfinder.position;
       final cameraSpeed = 5.0;
       
-      camera.viewfinder.position = currentCameraPos +
-          (playerWorldPos - currentCameraPos) * cameraSpeed * dt;
+      final targetPos = Vector2(playerWorldPos.x, playerWorldPos.y);
+      final diff = targetPos - currentCameraPos;
+      camera.viewfinder.position = currentCameraPos + diff * cameraSpeed * dt;
     }
   }
 }
