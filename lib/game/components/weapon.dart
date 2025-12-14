@@ -8,7 +8,7 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 12.0; // Smaller physics radius for better balance
   static const double visualRadius = 25.0; // Visual size stays larger
-  static const double baseDensity = 3.0; // Heavy enough to hit, light enough to pull
+  static const double baseDensity = 2.0; // Lightweight bat that accelerates instantly (The Bat)
   static const double friction = 0.0; // No friction for free swinging
   
   final Player player;
@@ -25,7 +25,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 0.3, // Some air resistance to prevent chaotic swinging
+      linearDamping: 0.5, // Stops it from drifting loosely; makes it feel "tight"
       angularDamping: 0.0, // No angular damping for free rotation
     );
     
@@ -75,9 +75,8 @@ class Weapon extends BodyComponent {
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
-    // Calculate maximum chain length (slightly tighter rope for better control)
-    // Base is 1.2, then apply multiplier for upgrades
-    final maxLength = distance * 1.2 * currentChainLengthMultiplier;
+    // Very little slack, feels more rigid/bat-like (fixed tight offset)
+    final maxLength = distance * 1.1;
     
     // Use RopeJoint instead of DistanceJoint for chain-like behavior
     // RopeJointDef uses default constructor, then set properties
@@ -100,7 +99,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: oldPos,
-      linearDamping: 0.3, // Match new damping value
+      linearDamping: 0.5, // Match new damping value
       angularDamping: 0.0,
     );
     
@@ -128,8 +127,8 @@ class Weapon extends BodyComponent {
       final playerPos = player.body.worldCenter;
       final weaponPos = body.worldCenter;
       final distance = (weaponPos - playerPos).length;
-      // Use 1.2 base multiplier for tighter rope control, then apply upgrade multiplier
-      final newMaxLength = distance * 1.2 * currentChainLengthMultiplier;
+      // Fixed tight offset (1.1) - feels more rigid/bat-like
+      final newMaxLength = distance * 1.1 * multiplier;
       
       // Destroy old joint
       world.destroyJoint(joint!);

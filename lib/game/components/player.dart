@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 class Player extends BodyComponent {
   static const double radius = 15.0;
-  static const double density = 2.0; // Increased for more authority over weapon
+  static const double density = 4.0; // Heavy enough to dictate movement (The Boss)
   static const double linearDamping = 4.0; // Good control
   
   forge2d.Vector2? inputDirection;
@@ -68,9 +68,9 @@ class Player extends BodyComponent {
   void applyInput(forge2d.Vector2 direction, double strength) {
     if (direction.length > 0 && strength > 0) {
       final normalized = direction.normalized();
-      // Apply stronger impulse to generate more momentum for weapon swinging
-      // Using impulse scaled by mass for consistent feel
-      final impulseMagnitude = strength * 120.0; // Increased for more momentum transfer
+      // Apply WAY more force to move the heavy player fast
+      // High number necessary to overcome high density and linear damping
+      final impulseMagnitude = strength * 1000.0;
       final impulse = forge2d.Vector2(
         normalized.x * impulseMagnitude * body.mass,
         normalized.y * impulseMagnitude * body.mass,
