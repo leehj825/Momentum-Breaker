@@ -11,6 +11,7 @@ import 'components/joystick.dart';
 import 'components/upgrade_overlay.dart';
 import 'components/arena.dart';
 import 'components/collision_listener.dart';
+import 'components/restart_button.dart';
 import 'game_state.dart';
 
 class MomentumBreakerGame extends Forge2DGame
@@ -22,9 +23,11 @@ class MomentumBreakerGame extends Forge2DGame
   final List<Enemy> _enemies = [];
   bool isPaused = false;
   bool showUpgradeOverlay = false;
+  bool isGameOver = false;
   int enemiesToSpawn = 5;
   late GameContactListener contactListener;
   GameState? gameState;
+  RestartButton? restartButton;
 
   @override
   Future<void> onLoad() async {
@@ -52,6 +55,12 @@ class MomentumBreakerGame extends Forge2DGame
     joystick = VirtualJoystick();
     await add(joystick);
     
+    // Create restart button
+    restartButton = RestartButton(
+      onRestart: _restartGame,
+    );
+    await add(restartButton!);
+    
     // Spawn initial enemies
     _spawnEnemies();
   }
@@ -62,8 +71,8 @@ class MomentumBreakerGame extends Forge2DGame
     player = Player(initialPosition: playerPos);
     await add(player);
     
-    // Weapon starts much further away to allow more swing room
-    final weaponPos = forge2d.Vector2(size.x / 2 + 150, size.y / 2);
+    // Weapon starts at a reasonable distance from player
+    final weaponPos = forge2d.Vector2(size.x / 2 + 60, size.y / 2);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
@@ -147,11 +156,87 @@ class MomentumBreakerGame extends Forge2DGame
     _spawnEnemies();
   }
 
+  Future<void> _restartGame() async {
+    // Reset game state
+    isGameOver = false;
+    isPaused = false;
+    showUpgradeOverlay = false;
+    
+    // Remove all enemies
+    for (final enemy in List<Enemy>.from(_enemies)) {
+      enemy.removeFromParent();
+    }
+    _enemies.clear();
+    
+    // Remove upgrade overlay if present
+    children.whereType<UpgradeOverlay>().forEach((overlay) {
+      overlay.removeFromParent();
+    });
+    
+    // Reset game state
+    if (gameState != null) {
+      gameState!.reset();
+    }
+    
+    // Reset player and weapon positions
+    final playerPos = forge2d.Vector2(size.x / 2, size.y / 2);
+    player.body.setTransform(playerPos, 0.0);
+    player.body.linearVelocity = forge2d.Vector2.zero();
+    player.body.angularVelocity = 0.0;
+    
+    final weaponPos = forge2d.Vector2(size.x / 2 + 60, size.y / 2);
+    weapon.body.setTransform(weaponPos, 0.0);
+    weapon.body.linearVelocity = forge2d.Vector2.zero();
+    weapon.body.angularVelocity = 0.0;
+    
+    // Reset weapon upgrades
+    weapon.currentMassMultiplier = 1.0;
+    weapon.currentChainLengthMultiplier = 1.5; // Base chain length
+    weapon.hasSpikes = false;
+    
+    // Remove spikes visually if they exist (spikes are RectangleComponents added after initial load)
+    final spikesToRemove = <Component>[];
+    for (final child in weapon.children) {
+      if (child is RectangleComponent && child != weapon.children.first) {
+        spikesToRemove.add(child);
+      }
+    }
+    for (final spike in spikesToRemove) {
+      spike.removeFromParent();
+    }
+    
+    // Recreate joint with reset chain length
+    if (weapon.joint != null) {
+      world.destroyJoint(weapon.joint!);
+    }
+    await weapon.createJoint();
+    
+    // Reset camera
+    camera.viewfinder.position = Vector2(size.x / 2, size.y / 2);
+    
+    // Reset enemy spawn count
+    enemiesToSpawn = 5;
+    
+    // Spawn new enemies
+    _spawnEnemies();
+    
+    // Resume engine if paused
+    if (paused) {
+      resumeEngine();
+    }
+  }
+
+  void onGameOver() {
+    isGameOver = true;
+    pauseEngine();
+    print("Game Over! Press Restart to play again.");
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
     
-    if (!isPaused && !showUpgradeOverlay) {
+    if (!isPaused && !showUpgradeOverlay && !isGameOver) {
       // Process enemy removals queued from collision detection
       contactListener.processEnemyRemovals();
       

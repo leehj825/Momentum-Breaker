@@ -69,9 +69,10 @@ class GameContactListener extends ContactListener {
   }
   
   void _handleEnemyPlayerCollision() {
-    // Game Over: Print statement and pause the game engine
-    print("Game Over! Enemy hit the player!");
-    game.pauseEngine();
+    // Game Over: Call game over handler
+    if (!game.isGameOver) {
+      game.onGameOver();
+    }
   }
   
   Enemy? _findEnemyByBody(forge2d.Body body) {

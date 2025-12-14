@@ -14,7 +14,7 @@ class Weapon extends BodyComponent {
   final forge2d.Vector2 initialPosition;
   DistanceJoint? joint;
   double currentMassMultiplier = 1.0;
-  double currentChainLengthMultiplier = 2.5; // Much longer chain for wider swings
+  double currentChainLengthMultiplier = 1.5; // Chain length multiplier for swings
   bool hasSpikes = false;
   
   Weapon({required this.player, required this.initialPosition});
@@ -41,6 +41,10 @@ class Weapon extends BodyComponent {
     
     body.createFixture(fixtureDef);
     body.userData = "weapon"; // Also store on body for easier access
+    
+    // Set initial velocity to zero to prevent drift
+    body.linearVelocity = forge2d.Vector2.zero();
+    body.angularVelocity = 0.0;
     
     return body;
   }

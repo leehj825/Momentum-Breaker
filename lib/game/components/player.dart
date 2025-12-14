@@ -23,6 +23,10 @@ class Player extends BodyComponent {
     
     final body = world.createBody(bodyDef);
     
+    // Set initial velocity to zero to prevent drift
+    body.linearVelocity = forge2d.Vector2.zero();
+    body.angularVelocity = 0.0;
+    
     final shape = CircleShape();
     shape.radius = radius;
     
