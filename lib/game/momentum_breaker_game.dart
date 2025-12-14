@@ -18,6 +18,8 @@ import 'game_state.dart';
 
 class MomentumBreakerGame extends Forge2DGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
+  @override
+  Color backgroundColor() => const Color(0xFF1a1a2e); // Dark blue-gray background
   late Player player;
   late Weapon weapon;
   late VirtualJoystick joystick;
@@ -70,7 +72,7 @@ class MomentumBreakerGame extends Forge2DGame
     startOverlay = Component();
     final background = RectangleComponent(
       size: size,
-      paint: Paint()..color = Colors.black.withOpacity(0.5),
+      paint: Paint()..color = Colors.black.withOpacity(0.7), // Slightly more opaque
     );
     startOverlay!.add(background);
     

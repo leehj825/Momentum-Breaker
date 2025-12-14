@@ -11,6 +11,16 @@ class Arena extends Component with HasGameRef<MomentumBreakerGame> {
     
     final worldSize = gameRef.size;
     
+    // Add floor/background (render first, behind everything)
+    final floor = RectangleComponent(
+      size: worldSize,
+      position: Vector2.zero(),
+      paint: Paint()..color = const Color(0xFF16213e), // Dark blue floor
+    );
+    floor.anchor = Anchor.topLeft;
+    floor.priority = -100; // Low priority so it renders behind everything
+    add(floor);
+    
     // Create walls around the arena
     final wallThickness = 20.0;
     final wallColor = Colors.grey[800]!;
