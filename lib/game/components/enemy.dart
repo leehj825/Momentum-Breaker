@@ -1,6 +1,6 @@
-import 'package:flame/components.dart' hide Vector2;
-import 'package:flame/components.dart' as flame show Vector2;
+import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 import 'player.dart';
 import '../momentum_breaker_game.dart';
@@ -11,7 +11,7 @@ class Enemy extends BodyComponent {
   static const double health = 100.0;
   
   final Player player;
-  final flame.Vector2 initialPosition;
+  final forge2d.Vector2 initialPosition;
   double currentHealth = health;
   bool isDestroyed = false;
 
@@ -21,14 +21,14 @@ class Enemy extends BodyComponent {
   Body createBody() {
     final bodyDef = BodyDef(
       type: BodyType.kinematic, // Kinematic so it can move but not be affected by physics
-      position: Vector2(initialPosition.x, initialPosition.y),
+      position: forge2d.Vector2(initialPosition.x, initialPosition.y),
     );
     
     final body = world.createBody(bodyDef);
     
     final halfSize = size / 2;
     final shape = PolygonShape()
-      ..setAsBox(halfSize, halfSize, Vector2.zero(), 0.0);
+      ..setAsBox(halfSize, halfSize, forge2d.Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
       ..isSensor = false // Not a sensor so it can collide
@@ -46,7 +46,7 @@ class Enemy extends BodyComponent {
     
     // Add visual representation
     final square = RectangleComponent(
-      size: flame.Vector2(size, size),
+      size: Vector2(size, size),
       paint: Paint()..color = Colors.green,
     );
     square.anchor = Anchor.center;
@@ -54,7 +54,7 @@ class Enemy extends BodyComponent {
     
     // Add inner square for visibility
     final innerSquare = RectangleComponent(
-      size: flame.Vector2(size * 0.7, size * 0.7),
+      size: Vector2(size * 0.7, size * 0.7),
       paint: Paint()..color = Colors.lightGreen,
     );
     innerSquare.anchor = Anchor.center;

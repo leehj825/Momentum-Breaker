@@ -1,6 +1,6 @@
-import 'package:flame/components.dart' hide Vector2;
-import 'package:flame/components.dart' as flame show Vector2;
+import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
@@ -17,34 +17,34 @@ class Arena extends Component with HasGameRef<MomentumBreakerGame> {
     
     // Top wall
     _createWall(
-      Vector2(worldSize.x / 2, wallThickness / 2),
-      flame.Vector2(worldSize.x, wallThickness),
+      forge2d.Vector2(worldSize.x / 2, wallThickness / 2),
+      forge2d.Vector2(worldSize.x, wallThickness),
       wallColor,
     );
     
     // Bottom wall
     _createWall(
-      Vector2(worldSize.x / 2, worldSize.y - wallThickness / 2),
-      flame.Vector2(worldSize.x, wallThickness),
+      forge2d.Vector2(worldSize.x / 2, worldSize.y - wallThickness / 2),
+      forge2d.Vector2(worldSize.x, wallThickness),
       wallColor,
     );
     
     // Left wall
     _createWall(
-      Vector2(wallThickness / 2, worldSize.y / 2),
-      flame.Vector2(wallThickness, worldSize.y),
+      forge2d.Vector2(wallThickness / 2, worldSize.y / 2),
+      forge2d.Vector2(wallThickness, worldSize.y),
       wallColor,
     );
     
     // Right wall
     _createWall(
-      Vector2(worldSize.x - wallThickness / 2, worldSize.y / 2),
-      flame.Vector2(wallThickness, worldSize.y),
+      forge2d.Vector2(worldSize.x - wallThickness / 2, worldSize.y / 2),
+      forge2d.Vector2(wallThickness, worldSize.y),
       wallColor,
     );
   }
 
-  void _createWall(Vector2 position, flame.Vector2 size, Color color) {
+  void _createWall(forge2d.Vector2 position, forge2d.Vector2 size, Color color) {
     final wallDef = BodyDef(
       type: BodyType.static,
       position: position,
@@ -55,7 +55,7 @@ class Arena extends Component with HasGameRef<MomentumBreakerGame> {
     final halfWidth = size.x / 2;
     final halfHeight = size.y / 2;
     final shape = PolygonShape()
-      ..setAsBox(halfWidth, halfHeight, Vector2.zero(), 0.0);
+      ..setAsBox(halfWidth, halfHeight, forge2d.Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
       ..friction = 0.3

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'package:flame/components.dart' hide Vector2;
-import 'package:flame/components.dart' as flame show Vector2;
+import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 import 'player.dart';
 
@@ -11,7 +11,7 @@ class Weapon extends BodyComponent {
   static const double friction = 0.5;
   
   final Player player;
-  final flame.Vector2 initialPosition;
+  final forge2d.Vector2 initialPosition;
   DistanceJoint? joint;
   double currentMassMultiplier = 1.0;
   double currentChainLengthMultiplier = 1.0;
@@ -23,7 +23,7 @@ class Weapon extends BodyComponent {
   Body createBody() {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
-      position: Vector2(initialPosition.x, initialPosition.y),
+      position: forge2d.Vector2(initialPosition.x, initialPosition.y),
       linearDamping: 2.0, // Moderate damping
     );
     
@@ -155,12 +155,11 @@ class Weapon extends BodyComponent {
       final spikeX = spikeLength * math.cos(angle);
       final spikeY = spikeLength * math.sin(angle);
       
-      // Use Flame's Vector2 for component position/size
       final spike = RectangleComponent(
-        size: flame.Vector2(5, spikeLength),
+        size: Vector2(5, spikeLength),
         paint: Paint()..color = Colors.grey[900]!,
         angle: angle,
-        position: flame.Vector2(spikeX, spikeY),
+        position: Vector2(spikeX, spikeY),
       );
       spike.anchor = Anchor.bottomCenter;
       add(spike);

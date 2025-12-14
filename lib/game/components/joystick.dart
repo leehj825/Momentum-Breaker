@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
+import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
@@ -103,7 +104,7 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     _isActive = false;
     _touchPosition = null;
     _knobPosition = _joystickPosition;
-    _updatePlayerInput(Vector2.zero());
+    _updatePlayerInput(forge2d.Vector2.zero());
     return true;
   }
 
@@ -124,7 +125,7 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     _updatePlayerInput(inputDirection, strength);
   }
 
-  void _updatePlayerInput(Vector2 direction, [double strength = 0.0]) {
+  void _updatePlayerInput(forge2d.Vector2 direction, [double strength = 0.0]) {
     gameRef.player.applyInput(direction, strength);
   }
 

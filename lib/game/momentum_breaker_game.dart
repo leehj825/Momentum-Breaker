@@ -1,10 +1,9 @@
 import 'dart:math' as math;
-import 'package:flame/components.dart' hide Vector2;
-import 'package:flame/components.dart' as flame show Vector2;
+import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:flame_forge2d/flame_forge2d.dart' hide Vector2;
-import 'package:flame_forge2d/flame_forge2d.dart' as forge2d show Vector2;
+import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:forge2d/forge2d.dart' as forge2d;
 import 'components/player.dart';
 import 'components/weapon.dart';
 import 'components/enemy.dart';
@@ -31,8 +30,6 @@ class MomentumBreakerGame extends Forge2DGame
     await super.onLoad();
     
     // Set up Forge2D world with zero gravity (top-down)
-    // Use Forge2D's Vector2 for physics (imported from flame_forge2d)
-    // Import Vector2 from forge2d package directly to avoid conflicts
     world.gravity = forge2d.Vector2.zero();
     
     // Set up contact listener for collision detection
@@ -60,12 +57,12 @@ class MomentumBreakerGame extends Forge2DGame
 
   Future<void> _initializePlayerAndWeapon() async {
     // Player starts at center
-    final playerPos = flame.Vector2(size.x / 2, size.y / 2);
+    final playerPos = forge2d.Vector2(size.x / 2, size.y / 2);
     player = Player(initialPosition: playerPos);
     await add(player);
     
     // Weapon starts slightly offset
-    final weaponPos = flame.Vector2(size.x / 2 + 50, size.y / 2);
+    final weaponPos = forge2d.Vector2(size.x / 2 + 50, size.y / 2);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
@@ -84,7 +81,7 @@ class MomentumBreakerGame extends Forge2DGame
       final x = centerX + spawnRadius * math.cos(angle);
       final y = centerY + spawnRadius * math.sin(angle);
       
-      final enemy = Enemy(player: player, initialPosition: flame.Vector2(x, y));
+      final enemy = Enemy(player: player, initialPosition: forge2d.Vector2(x, y));
       enemies.add(enemy);
       add(enemy);
     }
@@ -159,7 +156,7 @@ class MomentumBreakerGame extends Forge2DGame
       final currentCameraPos = camera.viewfinder.position;
       final cameraSpeed = 5.0;
       
-      final targetPos = flame.Vector2(playerWorldPos.x, playerWorldPos.y);
+      final targetPos = forge2d.Vector2(playerWorldPos.x, playerWorldPos.y);
       final diff = targetPos - currentCameraPos;
       camera.viewfinder.position = currentCameraPos + diff * cameraSpeed * dt;
     }

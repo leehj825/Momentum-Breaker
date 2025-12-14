@@ -1,6 +1,6 @@
-import 'package:flame/components.dart' hide Vector2;
-import 'package:flame/components.dart' as flame show Vector2;
+import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 
 class Player extends BodyComponent {
@@ -8,8 +8,8 @@ class Player extends BodyComponent {
   static const double density = 1.0;
   static const double linearDamping = 10.0; // High damping for quick stops
   
-  flame.Vector2? inputDirection;
-  final flame.Vector2 initialPosition;
+  forge2d.Vector2? inputDirection;
+  final forge2d.Vector2 initialPosition;
 
   Player({required this.initialPosition});
 
@@ -17,7 +17,7 @@ class Player extends BodyComponent {
   Body createBody() {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
-      position: Vector2(initialPosition.x, initialPosition.y),
+      position: forge2d.Vector2(initialPosition.x, initialPosition.y),
       linearDamping: linearDamping,
     );
     
@@ -57,10 +57,10 @@ class Player extends BodyComponent {
     add(innerCircle);
   }
 
-  void applyInput(flame.Vector2 direction, double strength) {
+  void applyInput(forge2d.Vector2 direction, double strength) {
     if (direction.length > 0) {
       final normalized = direction.normalized();
-      final force = Vector2(normalized.x * strength * 1000.0, normalized.y * strength * 1000.0);
+      final force = forge2d.Vector2(normalized.x * strength * 1000.0, normalized.y * strength * 1000.0);
       body.applyLinearImpulse(force);
     }
   }
