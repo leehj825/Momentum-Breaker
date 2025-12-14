@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'components/player.dart';
 import 'components/weapon.dart';
 import 'components/enemy.dart';
-import 'components/joystick.dart';
+import 'components/touch_control.dart';
 import 'components/upgrade_overlay.dart';
 import 'components/arena.dart';
 import 'components/collision_listener.dart';
@@ -22,7 +22,7 @@ class MomentumBreakerGame extends Forge2DGame
   Color backgroundColor() => const Color(0xFF1a1a2e); // Dark blue-gray background
   late Player player;
   late Weapon weapon;
-  late VirtualJoystick joystick;
+  late TouchControl touchControl;
   List<Enemy> get enemies => _enemies;
   final List<Enemy> _enemies = [];
   bool isPaused = false;
@@ -64,9 +64,9 @@ class MomentumBreakerGame extends Forge2DGame
     // Create player and weapon
     await _initializePlayerAndWeapon();
     
-    // Create joystick
-    joystick = VirtualJoystick();
-    await add(joystick);
+    // Create touch control (replaces joystick)
+    touchControl = TouchControl();
+    await add(touchControl);
     
     // Create restart button (will be added when game over)
     restartButton = RestartButton(
