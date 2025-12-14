@@ -60,11 +60,14 @@ class Player extends BodyComponent {
   void applyInput(forge2d.Vector2 direction, double strength) {
     if (direction.length > 0 && strength > 0) {
       final normalized = direction.normalized();
-      // Apply continuous force based on strength (0-1)
-      // Using force instead of impulse for continuous movement
-      final forceMagnitude = strength * 500.0; // Force multiplier
-      final force = forge2d.Vector2(normalized.x * forceMagnitude, normalized.y * forceMagnitude);
-      body.applyForce(force);
+      // Apply impulse every frame for continuous movement
+      // Using impulse scaled by mass for consistent feel
+      final impulseMagnitude = strength * 50.0; // Impulse multiplier
+      final impulse = forge2d.Vector2(
+        normalized.x * impulseMagnitude * body.mass,
+        normalized.y * impulseMagnitude * body.mass,
+      );
+      body.applyLinearImpulse(impulse);
     }
   }
 
