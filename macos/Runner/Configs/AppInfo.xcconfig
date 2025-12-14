@@ -1,0 +1,18 @@
+// The application's name. By default this is also the title of the Flutter window.
+PRODUCT_NAME = Momentum Breaker
+
+// The application's bundle identifier
+PRODUCT_BUNDLE_IDENTIFIER = com.example.momentumBreaker
+
+// The copyright displayed in application information
+PRODUCT_COPYRIGHT = Copyright © 2024
+
+// The application's version number
+FLUTTER_BUILD_NAME = 1.0.0
+
+// The application's version string
+FLUTTER_BUILD_NUMBER = 1
+
+// The minimum macOS deployment target
+MACOSX_DEPLOYMENT_TARGET = 10.14
+
