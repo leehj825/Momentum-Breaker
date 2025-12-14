@@ -6,11 +6,15 @@ import '../momentum_breaker_game.dart';
 
 class TouchControl extends PositionComponent 
     with HasGameRef<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
-  Vector2? _touchPosition;
+  // Joystick state variables
+  Vector2? _startDragPosition; // The center/anchor of the joystick (FIXED during drag)
+  Vector2? _currentDragPosition; // The knob/thumb position (updates during drag)
   bool _isActive = false;
   
-  // Visual indicator for touch point (optional)
-  bool _showIndicator = true;
+  // Joystick parameters
+  static const double _maxRange = 60.0; // Maximum distance from anchor
+  static const double _baseRadius = 50.0; // Visual base circle radius
+  static const double _knobRadius = 20.0; // Visual knob circle radius
 
   @override
   Future<void> onLoad() async {
@@ -46,44 +50,49 @@ class TouchControl extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    // Draw touch indicator if active
-    if (_isActive && _touchPosition != null && _showIndicator) {
-      // Draw a circle at touch position
-      final indicatorPaint = Paint()
+    // Only render joystick when drag is active
+    if (_isActive && _startDragPosition != null && _currentDragPosition != null) {
+      // Draw joystick base (circle) centered at _startDragPosition
+      final basePaint = Paint()
         ..color = Colors.white.withOpacity(0.3)
         ..style = PaintingStyle.fill;
       
-      final borderPaint = Paint()
+      final baseBorderPaint = Paint()
         ..color = Colors.white.withOpacity(0.6)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+      
+      canvas.drawCircle(
+        _startDragPosition!.toOffset(),
+        _baseRadius,
+        basePaint,
+      );
+      canvas.drawCircle(
+        _startDragPosition!.toOffset(),
+        _baseRadius,
+        baseBorderPaint,
+      );
+      
+      // Draw joystick knob (filled circle) at _currentDragPosition
+      final knobPaint = Paint()
+        ..color = Colors.white.withOpacity(0.7)
+        ..style = PaintingStyle.fill;
+      
+      final knobBorderPaint = Paint()
+        ..color = Colors.white
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
       
-      const indicatorRadius = 20.0;
       canvas.drawCircle(
-        _touchPosition!.toOffset(),
-        indicatorRadius,
-        indicatorPaint,
+        _currentDragPosition!.toOffset(),
+        _knobRadius,
+        knobPaint,
       );
       canvas.drawCircle(
-        _touchPosition!.toOffset(),
-        indicatorRadius,
-        borderPaint,
+        _currentDragPosition!.toOffset(),
+        _knobRadius,
+        knobBorderPaint,
       );
-      
-      // Draw line from player to touch point
-      if (gameRef.player.isMounted) {
-        final playerPos = gameRef.player.body.worldCenter;
-        final linePaint = Paint()
-          ..color = Colors.white.withOpacity(0.4)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0;
-        
-        canvas.drawLine(
-          Offset(playerPos.x, playerPos.y),
-          _touchPosition!.toOffset(),
-          linePaint,
-        );
-      }
     }
   }
 
@@ -92,9 +101,10 @@ class TouchControl extends PositionComponent
     super.onDragStart(event);
     if (!gameRef.isPlaying) return false;
     
-    // Get touch position in world coordinates
+    // Record the anchor point at initial touch - this MUST NOT CHANGE until drag ends
     final touchPos = event.canvasPosition;
-    _touchPosition = touchPos;
+    _startDragPosition = touchPos;
+    _currentDragPosition = touchPos; // Start knob at same position
     _isActive = true;
     _updatePlayerMovement();
     return true;
@@ -103,10 +113,23 @@ class TouchControl extends PositionComponent
   @override
   bool onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    if (!_isActive || !gameRef.isPlaying) return false;
+    if (!_isActive || !gameRef.isPlaying || _startDragPosition == null) return false;
     
-    // Update touch position
-    _touchPosition = event.canvasEndPosition;
+    // Update only _currentDragPosition (anchor stays fixed)
+    final newDragPos = event.canvasEndPosition;
+    
+    // Calculate vector from anchor to new position
+    final direction = newDragPos - _startDragPosition!;
+    final distance = direction.length;
+    
+    // Clamp knob position to max range from anchor
+    if (distance > _maxRange) {
+      final normalized = direction.normalized();
+      _currentDragPosition = _startDragPosition! + normalized * _maxRange;
+    } else {
+      _currentDragPosition = newDragPos;
+    }
+    
     _updatePlayerMovement();
     return true;
   }
@@ -116,10 +139,24 @@ class TouchControl extends PositionComponent
     super.onDragEnd(event);
     if (!_isActive) return false;
     
+    // Clear both positions and stop movement
     _isActive = false;
-    _touchPosition = null;
+    _startDragPosition = null;
+    _currentDragPosition = null;
     _stopPlayerMovement();
     return true;
+  }
+  
+  @override
+  void onDragCancel(DragCancelEvent event) {
+    super.onDragCancel(event);
+    if (!_isActive) return;
+    
+    // Clear both positions and stop movement
+    _isActive = false;
+    _startDragPosition = null;
+    _currentDragPosition = null;
+    _stopPlayerMovement();
   }
   
   @override
@@ -127,9 +164,10 @@ class TouchControl extends PositionComponent
     super.onTapDown(event);
     if (!gameRef.isPlaying) return false;
     
-    // Handle tap/click - treat as drag start
+    // Treat tap as drag start (for mouse clicks)
     final touchPos = event.canvasPosition;
-    _touchPosition = touchPos;
+    _startDragPosition = touchPos;
+    _currentDragPosition = touchPos;
     _isActive = true;
     _updatePlayerMovement();
     return true;
@@ -140,39 +178,38 @@ class TouchControl extends PositionComponent
     super.onTapUp(event);
     if (!_isActive) return false;
     
+    // Clear both positions and stop movement
     _isActive = false;
-    _touchPosition = null;
+    _startDragPosition = null;
+    _currentDragPosition = null;
     _stopPlayerMovement();
     return true;
   }
 
   void _updatePlayerMovement() {
-    if (!gameRef.isPlaying || !gameRef.player.isMounted || _touchPosition == null) {
+    if (!gameRef.isPlaying || !gameRef.player.isMounted || 
+        _startDragPosition == null || _currentDragPosition == null) {
       return;
     }
     
-    // Calculate direction from player to touch point
-    final playerPos = gameRef.player.body.worldCenter;
-    final playerWorldPos = Vector2(playerPos.x, playerPos.y);
-    final direction = _touchPosition! - playerWorldPos;
+    // Calculate direction vector from anchor to current knob position
+    final direction = _currentDragPosition! - _startDragPosition!;
     final distance = direction.length;
     
-    // If very close, don't move
-    if (distance < 5.0) {
+    // If very close to center, don't move
+    if (distance < 2.0) {
       _stopPlayerMovement();
       return;
     }
     
-    // Normalize direction and apply movement
+    // Normalize direction
     final normalized = direction.normalized();
     final forge2dDirection = forge2d.Vector2(normalized.x, normalized.y);
     
-    // Strength based on distance (clamped for smooth movement)
-    // Further away = stronger movement, but cap it
-    final maxDistance = 200.0;
-    final strength = (distance / maxDistance).clamp(0.0, 1.0);
+    // Calculate strength: distance / maxRange (clamped between 0.0 and 1.0)
+    final strength = (distance / _maxRange).clamp(0.0, 1.0);
     
-    // Apply input to player
+    // Apply input to player based on direction * strength (like standard joystick)
     gameRef.player.applyInput(forge2dDirection, strength);
   }
   
@@ -187,8 +224,8 @@ class TouchControl extends PositionComponent
   void update(double dt) {
     super.update(dt);
     
-    // Continuously update movement while touch is active
-    if (_isActive && _touchPosition != null && gameRef.isPlaying) {
+    // Continuously update movement while drag is active
+    if (_isActive && _startDragPosition != null && _currentDragPosition != null && gameRef.isPlaying) {
       _updatePlayerMovement();
     }
   }
