@@ -4,7 +4,8 @@ import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
-class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
+class VirtualJoystick extends Component 
+    with HasGameRef<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
   static const double joystickRadius = 60.0;
   static const double knobRadius = 25.0;
   static const double maxDistance = joystickRadius - knobRadius;
@@ -75,7 +76,10 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     );
   }
 
+  @override
   bool onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    // Get position in game coordinates (works for both touch and mouse)
     final localPos = event.localPosition;
     final distance = (localPos - _joystickPosition).length;
     
@@ -89,16 +93,50 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     return false;
   }
 
+  @override
   bool onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
     if (!_isActive) return false;
     
+    // For DragUpdateEvent, use canvasEndPosition which gives the current position
     final localPos = event.canvasEndPosition;
     _touchPosition = localPos;
     _updateKnobPosition(localPos);
     return true;
   }
 
+  @override
   bool onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    if (!_isActive) return false;
+    
+    _isActive = false;
+    _touchPosition = null;
+    _knobPosition = _joystickPosition;
+    _updatePlayerInput(forge2d.Vector2.zero());
+    return true;
+  }
+  
+  @override
+  bool onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    // Handle mouse click/tap on joystick area
+    final localPos = event.localPosition;
+    final distance = (localPos - _joystickPosition).length;
+    
+    if (distance <= joystickRadius * 2) {
+      _touchPosition = localPos;
+      _isActive = true;
+      _updateKnobPosition(localPos);
+      return true;
+    }
+    
+    return false;
+  }
+  
+  @override
+  bool onTapUp(TapUpEvent event) {
+    super.onTapUp(event);
     if (!_isActive) return false;
     
     _isActive = false;
@@ -129,6 +167,5 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     gameRef.player.applyInput(direction, strength);
   }
 
-  bool hasGestureHandlers() => true;
 }
 
