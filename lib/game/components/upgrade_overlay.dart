@@ -12,6 +12,9 @@ class UpgradeOverlay extends Component with HasGameRef<MomentumBreakerGame> {
   Future<void> onLoad() async {
     await super.onLoad();
     
+    // High priority to ensure overlay receives events and renders on top
+    priority = 1000;
+    
     // Add overlay background
     final background = RectangleComponent(
       size: gameRef.size,
@@ -100,6 +103,9 @@ class UpgradeButton extends RectangleComponent with TapCallbacks, HasGameRef<Mom
     await super.onLoad();
     
     paint = Paint()..color = color.withOpacity(0.8);
+    
+    // High priority to ensure buttons receive tap events
+    priority = 1001;
   }
 
   @override
