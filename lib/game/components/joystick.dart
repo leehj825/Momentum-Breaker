@@ -74,7 +74,6 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     );
   }
 
-  @override
   bool onDragStart(DragStartEvent event) {
     final localPos = event.localPosition;
     final distance = (localPos - _joystickPosition).length;
@@ -89,17 +88,15 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     return false;
   }
 
-  @override
   bool onDragUpdate(DragUpdateEvent event) {
     if (!_isActive) return false;
     
-    final localPos = event.localPosition;
+    final localPos = event.canvasEndPosition;
     _touchPosition = localPos;
     _updateKnobPosition(localPos);
     return true;
   }
 
-  @override
   bool onDragEnd(DragEndEvent event) {
     if (!_isActive) return false;
     
@@ -131,7 +128,6 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     gameRef.player.applyInput(direction, strength);
   }
 
-  @override
   bool hasGestureHandlers() => true;
 }
 

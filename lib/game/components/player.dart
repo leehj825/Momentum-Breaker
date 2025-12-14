@@ -1,4 +1,5 @@
-import 'package:flame/components.dart';
+import 'package:flame/components.dart' hide Vector2;
+import 'package:flame/components.dart' as flame show Vector2;
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 
@@ -7,8 +8,8 @@ class Player extends BodyComponent {
   static const double density = 1.0;
   static const double linearDamping = 10.0; // High damping for quick stops
   
-  Vector2? inputDirection;
-  final Vector2 initialPosition;
+  flame.Vector2? inputDirection;
+  final flame.Vector2 initialPosition;
 
   Player({required this.initialPosition});
 
@@ -56,7 +57,7 @@ class Player extends BodyComponent {
     add(innerCircle);
   }
 
-  void applyInput(Vector2 direction, double strength) {
+  void applyInput(flame.Vector2 direction, double strength) {
     if (direction.length > 0) {
       final normalized = direction.normalized();
       final force = Vector2(normalized.x * strength * 1000.0, normalized.y * strength * 1000.0);

@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
@@ -75,7 +76,7 @@ class UpgradeOverlay extends Component with HasGameRef<MomentumBreakerGame> {
   }
 }
 
-class UpgradeButton extends RectangleComponent with TapCallbacks {
+class UpgradeButton extends RectangleComponent with TapCallbacks, HasGameRef<MomentumBreakerGame> {
   final String title;
   final String description;
   final Color color;
@@ -142,8 +143,5 @@ class UpgradeButton extends RectangleComponent with TapCallbacks {
     onTap();
     return true;
   }
-  
-  @override
-  bool hasTapCallbacks() => true;
 }
 

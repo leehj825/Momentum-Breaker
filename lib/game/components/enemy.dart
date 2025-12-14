@@ -1,4 +1,5 @@
-import 'package:flame/components.dart';
+import 'package:flame/components.dart' hide Vector2;
+import 'package:flame/components.dart' as flame show Vector2;
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'player.dart';
@@ -10,7 +11,7 @@ class Enemy extends BodyComponent {
   static const double health = 100.0;
   
   final Player player;
-  final Vector2 initialPosition;
+  final flame.Vector2 initialPosition;
   double currentHealth = health;
   bool isDestroyed = false;
 
@@ -45,7 +46,7 @@ class Enemy extends BodyComponent {
     
     // Add visual representation
     final square = RectangleComponent(
-      size: Vector2(size, size),
+      size: flame.Vector2(size, size),
       paint: Paint()..color = Colors.green,
     );
     square.anchor = Anchor.center;
@@ -53,7 +54,7 @@ class Enemy extends BodyComponent {
     
     // Add inner square for visibility
     final innerSquare = RectangleComponent(
-      size: Vector2(size * 0.7, size * 0.7),
+      size: flame.Vector2(size * 0.7, size * 0.7),
       paint: Paint()..color = Colors.lightGreen,
     );
     innerSquare.anchor = Anchor.center;

@@ -1,9 +1,10 @@
-import 'package:flame/components.dart';
+import 'package:flame/components.dart' hide Vector2;
+import 'package:flame/components.dart' as flame show Vector2;
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
-class Arena extends Forge2DComponent with HasGameRef<MomentumBreakerGame> {
+class Arena extends Component with HasGameRef<MomentumBreakerGame> {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -17,39 +18,39 @@ class Arena extends Forge2DComponent with HasGameRef<MomentumBreakerGame> {
     // Top wall
     _createWall(
       Vector2(worldSize.x / 2, wallThickness / 2),
-      Vector2(worldSize.x, wallThickness),
+      flame.Vector2(worldSize.x, wallThickness),
       wallColor,
     );
     
     // Bottom wall
     _createWall(
       Vector2(worldSize.x / 2, worldSize.y - wallThickness / 2),
-      Vector2(worldSize.x, wallThickness),
+      flame.Vector2(worldSize.x, wallThickness),
       wallColor,
     );
     
     // Left wall
     _createWall(
       Vector2(wallThickness / 2, worldSize.y / 2),
-      Vector2(wallThickness, worldSize.y),
+      flame.Vector2(wallThickness, worldSize.y),
       wallColor,
     );
     
     // Right wall
     _createWall(
       Vector2(worldSize.x - wallThickness / 2, worldSize.y / 2),
-      Vector2(wallThickness, worldSize.y),
+      flame.Vector2(wallThickness, worldSize.y),
       wallColor,
     );
   }
 
-  void _createWall(Vector2 position, Vector2 size, Color color) {
+  void _createWall(Vector2 position, flame.Vector2 size, Color color) {
     final wallDef = BodyDef(
       type: BodyType.static,
       position: position,
     );
     
-    final wallBody = world.createBody(wallDef);
+    final wallBody = gameRef.world.createBody(wallDef);
     
     final halfWidth = size.x / 2;
     final halfHeight = size.y / 2;
