@@ -60,19 +60,11 @@ class Player extends BodyComponent {
   void applyInput(forge2d.Vector2 direction, double strength) {
     if (direction.length > 0 && strength > 0) {
       final normalized = direction.normalized();
-      // Apply force based on strength (0-1) and a base force multiplier
-      // Using linear velocity instead of impulse for smoother, more responsive control
-      final targetSpeed = strength * 200.0; // Max speed
-      final currentVelocity = body.linearVelocity;
-      final targetVelocity = forge2d.Vector2(normalized.x * targetSpeed, normalized.y * targetSpeed);
-      final velocityChange = targetVelocity - currentVelocity;
-      
-      // Apply impulse to change velocity
-      final impulse = forge2d.Vector2(
-        velocityChange.x * body.mass,
-        velocityChange.y * body.mass,
-      );
-      body.applyLinearImpulse(impulse);
+      // Apply continuous force based on strength (0-1)
+      // Using force instead of impulse for continuous movement
+      final forceMagnitude = strength * 500.0; // Force multiplier
+      final force = forge2d.Vector2(normalized.x * forceMagnitude, normalized.y * forceMagnitude);
+      body.applyForce(force);
     }
   }
 

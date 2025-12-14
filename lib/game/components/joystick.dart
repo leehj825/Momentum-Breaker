@@ -15,6 +15,8 @@ class VirtualJoystick extends PositionComponent
   Vector2 _knobPosition = Vector2.zero();
   bool _isActive = false;
   Vector2? _dragStartPosition;
+  forge2d.Vector2 _currentInputDirection = forge2d.Vector2.zero();
+  double _currentInputStrength = 0.0;
 
   @override
   Future<void> onLoad() async {
@@ -136,7 +138,9 @@ class VirtualJoystick extends PositionComponent
     _touchPosition = null;
     _dragStartPosition = null;
     _knobPosition = _joystickPosition;
-    _updatePlayerInput(forge2d.Vector2.zero());
+    _currentInputDirection = forge2d.Vector2.zero();
+    _currentInputStrength = 0.0;
+    _updatePlayerInput(forge2d.Vector2.zero(), 0.0);
     return true;
   }
   
@@ -168,7 +172,9 @@ class VirtualJoystick extends PositionComponent
     _touchPosition = null;
     _dragStartPosition = null;
     _knobPosition = _joystickPosition;
-    _updatePlayerInput(forge2d.Vector2.zero());
+    _currentInputDirection = forge2d.Vector2.zero();
+    _currentInputStrength = 0.0;
+    _updatePlayerInput(forge2d.Vector2.zero(), 0.0);
     return true;
   }
 
@@ -188,7 +194,22 @@ class VirtualJoystick extends PositionComponent
     
     // Convert Flame Vector2 to Forge2D Vector2 for physics
     final forge2dDirection = forge2d.Vector2(inputDirection.x, inputDirection.y);
+    
+    // Store current input for continuous application
+    _currentInputDirection = forge2dDirection;
+    _currentInputStrength = strength;
+    
     _updatePlayerInput(forge2dDirection, strength);
+  }
+  
+  @override
+  void update(double dt) {
+    super.update(dt);
+    
+    // Continuously apply input while joystick is active
+    if (_isActive && _currentInputStrength > 0) {
+      _updatePlayerInput(_currentInputDirection, _currentInputStrength);
+    }
   }
 
   void _updatePlayerInput(forge2d.Vector2 direction, [double strength = 0.0]) {
