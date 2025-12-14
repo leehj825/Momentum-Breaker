@@ -51,6 +51,9 @@ class MomentumBreakerGame extends Forge2DGame
     // Set up camera
     camera.viewfinder.anchor = Anchor.center;
     
+    // Add UI components to camera viewfinder so they're always visible
+    // (UI overlays should be in screen space, not world space)
+    
     // Create arena
     final arena = Arena();
     await add(arena);
@@ -69,23 +72,16 @@ class MomentumBreakerGame extends Forge2DGame
     // Don't add it yet - will add on game over
     
     // Create start button overlay (shown initially)
-    final background = RectangleComponent(
-      size: size,
-      position: Vector2.zero(),
-      paint: Paint()..color = Colors.black.withOpacity(0.7),
-    );
-    background.anchor = Anchor.topLeft;
-    background.priority = 150; // High priority to render on top
-    await add(background);
-    
-    // Wait a frame to ensure size is set
-    await Future.delayed(Duration.zero);
+    // Add to camera viewfinder so it's in screen space
+    final background = _StartOverlayBackground();
+    background.priority = 150;
+    await camera.viewfinder.add(background);
     
     startButton = StartButton(
       onStart: _startGame,
     );
     startButton!.priority = 200; // Even higher priority
-    await add(startButton!);
+    await camera.viewfinder.add(startButton!);
     
     // Store reference for removal
     startOverlay = background;
@@ -190,11 +186,11 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _startGame() {
     hasStarted = true;
-    // Remove start overlay background
+    // Remove start overlay background from camera viewfinder
     if (startOverlay != null && startOverlay!.isMounted) {
       startOverlay!.removeFromParent();
     }
-    // Remove start button
+    // Remove start button from camera viewfinder
     if (startButton != null && startButton!.isMounted) {
       startButton!.removeFromParent();
     }
@@ -270,19 +266,14 @@ class MomentumBreakerGame extends Forge2DGame
     _spawnEnemies();
     
     // Show start button overlay and pause game
-    final background = RectangleComponent(
-      size: size,
-      position: Vector2.zero(),
-      paint: Paint()..color = Colors.black.withOpacity(0.7),
-    );
-    background.anchor = Anchor.topLeft;
+    final background = _StartOverlayBackground();
     background.priority = 150;
-    await add(background);
+    await camera.viewfinder.add(background);
     startOverlay = background;
     
     if (startButton != null && !startButton!.isMounted) {
       startButton!.priority = 200;
-      await add(startButton!);
+      await camera.viewfinder.add(startButton!);
     }
     if (restartButton != null && restartButton!.isMounted) {
       restartButton!.removeFromParent();
@@ -324,5 +315,33 @@ enum UpgradeType {
   heavyHitter,
   longReach,
   spikes,
+}
+
+// Background overlay component that handles resizing
+class _StartOverlayBackground extends RectangleComponent 
+    with HasGameRef<MomentumBreakerGame> {
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    paint = Paint()..color = Colors.black.withOpacity(0.7);
+    anchor = Anchor.topLeft;
+    position = Vector2.zero();
+  }
+  
+  @override
+  void onMount() {
+    super.onMount();
+    if (gameRef.size.x > 0 && gameRef.size.y > 0) {
+      size = gameRef.size;
+    }
+  }
+  
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    if (size.x > 0 && size.y > 0) {
+      this.size = size;
+    }
+  }
 }
 

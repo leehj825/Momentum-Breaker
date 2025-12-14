@@ -15,10 +15,7 @@ class StartButton extends RectangleComponent
   Future<void> onLoad() async {
     await super.onLoad();
     
-    // Position button in center of screen
-    // Use gameRef.size which should be available after onLoad
-    final gameSize = gameRef.size;
-    position = Vector2(gameSize.x / 2, gameSize.y / 2);
+    // Set size first
     size = Vector2(200, 80); // Larger button for better visibility
     anchor = Anchor.center;
     
@@ -28,16 +25,44 @@ class StartButton extends RectangleComponent
   }
   
   @override
+  void onMount() {
+    super.onMount();
+    // Position button in center when mounted (size should be available)
+    _updatePosition();
+  }
+  
+  void _updatePosition() {
+    final gameSize = gameRef.size;
+    if (gameSize.x > 0 && gameSize.y > 0) {
+      position = Vector2(gameSize.x / 2, gameSize.y / 2);
+    } else {
+      // Fallback: use a reasonable default position
+      position = Vector2(400, 300); // Center of typical screen
+    }
+  }
+  
+  @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     // Update position when game resizes
-    position = Vector2(size.x / 2, size.y / 2);
+    _updatePosition();
+  }
+  
+  @override
+  void update(double dt) {
+    super.update(dt);
+    // Ensure position is set even if onGameResize didn't fire
+    if (position.x == 0 && position.y == 0) {
+      _updatePosition();
+    }
   }
 
   @override
   void render(Canvas canvas) {
     // Draw button background (super.render draws the rectangle)
-    super.render(canvas);
+    // Make absolutely sure it renders by using a bright color
+    final bgPaint = Paint()..color = Colors.green;
+    canvas.drawRect(size.toRect(), bgPaint);
     
     // Draw border with thicker line
     final borderPaint = Paint()
