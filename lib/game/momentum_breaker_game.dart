@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:forge2d/forge2d.dart' as forge2d;
+import 'package:flutter/material.dart';
 import 'components/player.dart';
 import 'components/weapon.dart';
 import 'components/enemy.dart';
@@ -12,6 +13,7 @@ import 'components/upgrade_overlay.dart';
 import 'components/arena.dart';
 import 'components/collision_listener.dart';
 import 'components/restart_button.dart';
+import 'components/start_button.dart';
 import 'game_state.dart';
 
 class MomentumBreakerGame extends Forge2DGame
@@ -24,10 +26,13 @@ class MomentumBreakerGame extends Forge2DGame
   bool isPaused = false;
   bool showUpgradeOverlay = false;
   bool isGameOver = false;
+  bool hasStarted = false; // Track if game has started
   int enemiesToSpawn = 5;
   late GameContactListener contactListener;
   GameState? gameState;
   RestartButton? restartButton;
+  StartButton? startButton;
+  Component? startOverlay;
 
   @override
   Future<void> onLoad() async {
@@ -55,14 +60,31 @@ class MomentumBreakerGame extends Forge2DGame
     joystick = VirtualJoystick();
     await add(joystick);
     
-    // Create restart button
+    // Create restart button (will be added when game over)
     restartButton = RestartButton(
       onRestart: _restartGame,
     );
-    await add(restartButton!);
+    // Don't add it yet - will add on game over
+    
+    // Create start button overlay (shown initially)
+    startOverlay = Component();
+    final background = RectangleComponent(
+      size: size,
+      paint: Paint()..color = Colors.black.withOpacity(0.5),
+    );
+    startOverlay!.add(background);
+    
+    startButton = StartButton(
+      onStart: _startGame,
+    );
+    startOverlay!.add(startButton!);
+    await add(startOverlay!);
     
     // Spawn initial enemies
     _spawnEnemies();
+    
+    // Pause the game initially until start button is clicked
+    pauseEngine();
   }
 
   Future<void> _initializePlayerAndWeapon() async {
@@ -156,11 +178,24 @@ class MomentumBreakerGame extends Forge2DGame
     _spawnEnemies();
   }
 
+  void _startGame() {
+    hasStarted = true;
+    // Remove start overlay (includes button and background)
+    if (startOverlay != null && startOverlay!.isMounted) {
+      startOverlay!.removeFromParent();
+    }
+    if (restartButton != null && restartButton!.isMounted) {
+      restartButton!.removeFromParent(); // Hide restart button
+    }
+    resumeEngine();
+  }
+
   Future<void> _restartGame() async {
     // Reset game state
     isGameOver = false;
     isPaused = false;
     showUpgradeOverlay = false;
+    hasStarted = false; // Reset start state
     
     // Remove all enemies
     for (final enemy in List<Enemy>.from(_enemies)) {
@@ -220,15 +255,23 @@ class MomentumBreakerGame extends Forge2DGame
     // Spawn new enemies
     _spawnEnemies();
     
-    // Resume engine if paused
-    if (paused) {
-      resumeEngine();
+    // Show start button overlay and pause game
+    if (startOverlay != null && !startOverlay!.isMounted) {
+      add(startOverlay!);
     }
+    if (restartButton != null && restartButton!.isMounted) {
+      restartButton!.removeFromParent();
+    }
+    pauseEngine();
   }
 
   void onGameOver() {
     isGameOver = true;
     pauseEngine();
+    // Show restart button on game over
+    if (restartButton != null && !restartButton!.isMounted) {
+      add(restartButton!);
+    }
     print("Game Over! Press Restart to play again.");
   }
 
@@ -236,7 +279,7 @@ class MomentumBreakerGame extends Forge2DGame
   void update(double dt) {
     super.update(dt);
     
-    if (!isPaused && !showUpgradeOverlay && !isGameOver) {
+    if (!isPaused && !showUpgradeOverlay && !isGameOver && hasStarted) {
       // Process enemy removals queued from collision detection
       contactListener.processEnemyRemovals();
       
