@@ -13,8 +13,6 @@ class TouchControl extends PositionComponent
   
   // Joystick parameters
   static const double _maxRange = 60.0; // Maximum distance from anchor
-  static const double _baseRadius = 50.0; // Visual base circle radius
-  static const double _knobRadius = 20.0; // Visual knob circle radius
 
   @override
   Future<void> onLoad() async {
@@ -63,50 +61,8 @@ class TouchControl extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    // Only render joystick when drag is active
-    if (_isActive && _startDragPosition != null && _currentDragPosition != null) {
-      // Draw joystick base (circle) centered at _startDragPosition
-      final basePaint = Paint()
-        ..color = Colors.white.withOpacity(0.3)
-        ..style = PaintingStyle.fill;
-      
-      final baseBorderPaint = Paint()
-        ..color = Colors.white.withOpacity(0.6)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.0;
-      
-      canvas.drawCircle(
-        _startDragPosition!.toOffset(),
-        _baseRadius,
-        basePaint,
-      );
-      canvas.drawCircle(
-        _startDragPosition!.toOffset(),
-        _baseRadius,
-        baseBorderPaint,
-      );
-      
-      // Draw joystick knob (filled circle) at _currentDragPosition
-      final knobPaint = Paint()
-        ..color = Colors.white.withOpacity(0.7)
-        ..style = PaintingStyle.fill;
-      
-      final knobBorderPaint = Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
-      
-      canvas.drawCircle(
-        _currentDragPosition!.toOffset(),
-        _knobRadius,
-        knobPaint,
-      );
-      canvas.drawCircle(
-        _currentDragPosition!.toOffset(),
-        _knobRadius,
-        knobBorderPaint,
-      );
-    }
+    // Joystick visual is hidden - touch control still works invisibly
+    // Movement is controlled by touch/drag but no visual feedback is shown
   }
 
   @override
