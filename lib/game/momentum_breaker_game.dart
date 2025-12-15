@@ -24,6 +24,9 @@ class MomentumBreakerGame extends Forge2DGame
   // Fixed world size for consistent gameplay across all platforms
   static final Vector2 fixedGameSize = Vector2(2000, 2000);
   
+  // Design Resolution: How much of the world we want to see horizontally
+  static const double visibleGameWidth = 1500.0;
+  
   late Player player;
   late Weapon weapon;
   late TouchControl touchControl;
@@ -56,11 +59,11 @@ class MomentumBreakerGame extends Forge2DGame
     world.physicsWorld.setContactListener(contactListener);
     
     // Set up camera
-    // Set a fixed visible game size (Design Resolution)
-    // This makes the camera zoom out to fit 1500x1500 units of the world
-    camera.viewfinder.visibleGameSize = Vector2(1500, 1500);
-    camera.viewfinder.position = fixedGameSize / 2; // Start at center of arena
     camera.viewfinder.anchor = Anchor.center;
+    camera.viewfinder.position = fixedGameSize / 2; // Start at center of arena
+    
+    // Calculate initial zoom based on current screen size
+    _updateCameraZoom();
     
     // Add UI components to camera viewfinder so they're always visible
     // (UI overlays should be in screen space, not world space)
@@ -308,6 +311,22 @@ class MomentumBreakerGame extends Forge2DGame
       camera.viewfinder.add(restartButton!);
     }
     print("Game Over! Press Restart to play again.");
+  }
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    // Calculate zoom to ensure 'visibleGameWidth' units are always shown
+    _updateCameraZoom();
+  }
+  
+  void _updateCameraZoom() {
+    // Calculate zoom factor based on screen width
+    // This ensures we always see exactly 'visibleGameWidth' units horizontally
+    if (size.x > 0) {
+      final zoom = size.x / visibleGameWidth;
+      camera.viewfinder.zoom = zoom;
+    }
   }
 
   @override
