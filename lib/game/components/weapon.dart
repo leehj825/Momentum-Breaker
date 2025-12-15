@@ -13,7 +13,7 @@ class Weapon extends BodyComponent {
   
   final Player player;
   final forge2d.Vector2 initialPosition;
-  forge2d.DistanceJoint? joint;
+  forge2d.RopeJoint? joint;
   double currentMassMultiplier = 1.0;
   double currentChainLengthMultiplier = 1.0; // Base multiplier for chain length upgrades
   double baseChainLength = 200.0; // Base orbital radius (200px)
@@ -73,20 +73,22 @@ class Weapon extends BodyComponent {
   }
 
   Future<void> createJoint() async {
+    // Calculate chain length based on distance between player and weapon
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
-
-    // Calculate the rigid orbital radius
-    // We accept whatever distance they spawned at as the "rod length"
-    // This ensures no snapping/teleporting on start
-
-    final jointDef = forge2d.DistanceJointDef()
-      ..initialize(player.body, body, playerPos, weaponPos)
-      ..frequencyHz = 0.0 // 0.0 = Rigid Rod (No elasticity, perfect for swinging)
-      ..dampingRatio = 0.0; // 0.0 = No damping (Spin forever)
-    // Note: initialize() automatically sets the 'length' property to the distance
-
-    joint = forge2d.DistanceJoint(jointDef);
+    final distance = (weaponPos - playerPos).length;
+    
+    // Use RopeJoint for chain-like behavior
+    // 1.2x gives a little slack (chain feel) but keeps it tight enough to swing reliably
+    final maxLength = distance * 1.2 * currentChainLengthMultiplier;
+    
+    final jointDef = forge2d.RopeJointDef()
+      ..bodyA = player.body
+      ..bodyB = body
+      ..maxLength = maxLength; // Chain with 20% slack for natural swinging feel
+    // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
+    
+    joint = forge2d.RopeJoint(jointDef);
     world.createJoint(joint!);
   }
 
@@ -124,27 +126,25 @@ class Weapon extends BodyComponent {
   void updateChainLength(double multiplier) {
     currentChainLengthMultiplier = multiplier;
     if (joint != null) {
-      // DistanceJoint.length is not mutable, so we must recreate the joint
-      // Calculate new length based on base length and multiplier
-      final newLength = baseChainLength * currentChainLengthMultiplier;
-      
-      // Get current positions
+      // Calculate chain length based on current distance between player and weapon
       final playerPos = player.body.worldCenter;
       final weaponPos = body.worldCenter;
+      final distance = (weaponPos - playerPos).length;
+      
+      // 1.2x gives a little slack (chain feel) but keeps it tight enough to swing reliably
+      final newMaxLength = distance * 1.2 * currentChainLengthMultiplier;
       
       // Destroy old joint
       world.destroyJoint(joint!);
       
-      // Create new DistanceJoint with updated length
-      final jointDef = forge2d.DistanceJointDef()
-        ..initialize(player.body, body, playerPos, weaponPos)
-        ..frequencyHz = 0.0 // 0.0 = Rigid Rod (No elasticity, perfect for swinging)
-        ..dampingRatio = 0.0; // 0.0 = No damping (Spin forever)
+      // Create new RopeJoint with updated max length
+      final jointDef = forge2d.RopeJointDef()
+        ..bodyA = player.body
+        ..bodyB = body
+        ..maxLength = newMaxLength; // Chain with 20% slack for natural swinging feel
+      // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
       
-      // Override the length set by initialize() with our desired length
-      jointDef.length = newLength;
-      
-      joint = forge2d.DistanceJoint(jointDef);
+      joint = forge2d.RopeJoint(jointDef);
       world.createJoint(joint!);
     }
   }

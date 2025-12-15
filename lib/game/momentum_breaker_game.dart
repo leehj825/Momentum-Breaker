@@ -117,8 +117,8 @@ class MomentumBreakerGame extends Forge2DGame
     player = Player(initialPosition: playerPos);
     await add(player);
     
-    // Weapon spawns at exactly the joint's length (200px) to match DistanceJoint constraint
-    // This prevents physics engine from violently snapping bodies together on first frame
+    // Weapon spawns 200px away - RopeJoint will set maxLength to 1.2x this distance (240px)
+    // This gives good swing radius with natural chain slack
     final weaponPos = forge2d.Vector2(playerPos.x + 200.0, playerPos.y);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
@@ -129,8 +129,9 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _spawnEnemies() {
     _enemies.clear();
-    // Use screen size for spawn radius (world size = screen size)
-    final spawnRadius = size.x * 0.4;
+    // Use smallest dimension to ensure enemies fit within screen bounds
+    // This prevents enemies from spawning off-screen on landscape devices
+    final spawnRadius = math.min(size.x, size.y) * 0.35;
     final centerX = size.x / 2;
     final centerY = size.y / 2;
     
@@ -250,8 +251,8 @@ class MomentumBreakerGame extends Forge2DGame
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    // Weapon spawns at exactly the joint's length (200px) to match DistanceJoint constraint
-    // This prevents physics engine from violently snapping bodies together on first frame
+    // Weapon spawns 200px away - RopeJoint will set maxLength to 1.2x this distance (240px)
+    // This gives good swing radius with natural chain slack
     final weaponPos = forge2d.Vector2(playerPos.x + 200.0, playerPos.y);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();
