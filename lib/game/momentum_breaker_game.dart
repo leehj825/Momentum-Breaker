@@ -117,10 +117,9 @@ class MomentumBreakerGame extends Forge2DGame
     player = Player(initialPosition: playerPos);
     await add(player);
     
-    // Weapon starts at increased distance from player (longer reach)
-    // Use offset based on weapon visual size (4.0x weapon radius for good reach)
-    final weaponOffset = Weapon.visualRadius * 4.0;
-    final weaponPos = forge2d.Vector2(size.x / 2 + weaponOffset, size.y / 2);
+    // Weapon starts with slack - spawn at fixed distance (150px) from player
+    // This ensures room to accelerate and creates initial swing potential
+    final weaponPos = forge2d.Vector2(playerPos.x + 150.0, playerPos.y);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
@@ -251,9 +250,9 @@ class MomentumBreakerGame extends Forge2DGame
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    // Use offset based on weapon visual size (4.0x weapon radius for good reach)
-    final weaponOffset = Weapon.visualRadius * 4.0;
-    final weaponPos = forge2d.Vector2(size.x / 2 + weaponOffset, size.y / 2);
+    // Weapon starts with slack - spawn at fixed distance (150px) from player
+    // This ensures room to accelerate and creates initial swing potential
+    final weaponPos = forge2d.Vector2(playerPos.x + 150.0, playerPos.y);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();
     weapon.body.angularVelocity = 0.0;

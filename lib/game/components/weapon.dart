@@ -8,7 +8,7 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 12.0; // Physics radius (unchanged)
   static const double visualRadius = 20.0; // Visual radius (smaller for better gameplay)
-  static const double baseDensity = 8.0; // Heavy object resists changing direction - increases centrifugal pull
+  static const double baseDensity = 10.0; // Heavy object has more inertia - resists changing direction, enhances "pulling" feeling
   static const double friction = 0.0; // No friction for free swinging
   
   final Player player;
