@@ -24,8 +24,9 @@ class StartButton extends RectangleComponent
     paint = Paint()..color = Colors.green.withOpacity(0.9);
     
     // UI components should stick to screen (viewport space), not world space
-    // Note: Since this component is added to camera.viewfinder, it's already in viewport space
-    // positionType = PositionType.viewport; // Uncomment if available in your Flame version
+    // When positionType is viewport, game.size refers to screen overlay dimensions (HUD)
+    // Note: Components added to camera.viewfinder are already in viewport space
+    // If PositionType.viewport is available, uncomment: positionType = PositionType.viewport;
     
     priority = 1001; // Very high priority to render on top and receive events
     

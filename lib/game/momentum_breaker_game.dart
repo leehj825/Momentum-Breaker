@@ -23,7 +23,7 @@ class MomentumBreakerGame extends Forge2DGame
   
   // Fixed world size for consistent gameplay across all platforms
   // This is the actual physics world size - same on all devices
-  static final Vector2 worldSize = Vector2(1500, 1500);
+  static final Vector2 worldSize = Vector2(2000, 2000);
   
   late Player player;
   late Weapon weapon;
@@ -57,13 +57,12 @@ class MomentumBreakerGame extends Forge2DGame
     world.physicsWorld.setContactListener(contactListener);
     
     // Set up camera
+    // 1. Center the origin so (0,0) is in the middle of the screen
     camera.viewfinder.anchor = Anchor.center;
-    camera.viewfinder.position = worldSize / 2; // Look at the center of the world
-    
-    // Calculate initial zoom to fit the world
-    if (size.x > 0) {
-      camera.viewfinder.zoom = size.x / 1500.0;
-    }
+    // 2. Move the camera to look at the CENTER of the world (CRITICAL FIX)
+    camera.viewfinder.position = worldSize / 2;
+    // 3. Set a default zoom so we can see something
+    camera.viewfinder.zoom = 0.5;
     
     // Add UI components to camera viewfinder so they're always visible
     // (UI overlays should be in screen space, not world space)
@@ -316,11 +315,11 @@ class MomentumBreakerGame extends Forge2DGame
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    // Calculate zoom to fit the world width into the screen width
-    // "1500" is our safe visible width (worldSize.x)
+    // Calculate zoom so that 1500 units of the world are always visible
+    // This ensures the game looks the same on Phone (Narrow) and Mac (Wide)
     if (size.x > 0) {
-      final zoom = size.x / 1500.0;
-      camera.viewfinder.zoom = zoom;
+      final targetZoom = size.x / 1500.0;
+      camera.viewfinder.zoom = targetZoom;
     }
   }
 
