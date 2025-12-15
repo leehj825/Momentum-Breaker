@@ -13,7 +13,7 @@ class Weapon extends BodyComponent {
   
   final Player player;
   final forge2d.Vector2 initialPosition;
-  forge2d.DistanceJoint? joint;
+  forge2d.RopeJoint? joint;
   double currentMassMultiplier = 1.0;
   double currentChainLengthMultiplier = 1.0; // Base multiplier (1.2 rope length is applied in createJoint)
   bool hasSpikes = false;
@@ -72,20 +72,22 @@ class Weapon extends BodyComponent {
   }
 
   Future<void> createJoint() async {
-    // Use DistanceJoint to enforce fixed orbital radius - prevents weapon from "sticking" to player
-    // Fixed distance constraint forces circular orbit when player turns or stops
-    final length = 200.0 * currentChainLengthMultiplier;
+    // Calculate chain length based on distance between player and weapon
+    final playerPos = player.body.worldCenter;
+    final weaponPos = body.worldCenter;
+    final distance = (weaponPos - playerPos).length;
+    // Reduce slack from 2.5x to 1.1x - tight enough to swing, not rigid
+    // Just enough slack to not be rigid, but tight enough to transfer momentum immediately
+    final maxLength = distance * 1.1 * currentChainLengthMultiplier;
     
-    // Use DistanceJointDef for fixed distance constraint (like a steel rod)
-    final jointDef = forge2d.DistanceJointDef()
+    // Use RopeJoint for chain-like behavior - tight rope for instant momentum transfer
+    final jointDef = forge2d.RopeJointDef()
       ..bodyA = player.body
       ..bodyB = body
-      ..length = length // Fixed 200px orbital radius (multiplied by upgrade)
-      ..frequencyHz = 0.0 // Rigid connection - no bungee bouncing, instant responsiveness
-      ..dampingRatio = 0.0; // No damping on the joint itself
+      ..maxLength = maxLength; // Tight rope (110% slack) - tightens instantly when player turns
     // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
     
-    joint = forge2d.DistanceJoint(jointDef);
+    joint = forge2d.RopeJoint(jointDef);
     world.createJoint(joint!);
   }
 
@@ -123,22 +125,24 @@ class Weapon extends BodyComponent {
   void updateChainLength(double multiplier) {
     currentChainLengthMultiplier = multiplier;
     if (joint != null) {
-      // Update DistanceJoint with new fixed length
-      final newLength = 200.0 * currentChainLengthMultiplier;
+      // Calculate chain length based on current distance between player and weapon
+      final playerPos = player.body.worldCenter;
+      final weaponPos = body.worldCenter;
+      final distance = (weaponPos - playerPos).length;
+      // Reduce slack from 2.5x to 1.1x - tight enough to swing, not rigid
+      final newMaxLength = distance * 1.1 * currentChainLengthMultiplier;
       
       // Destroy old joint
       world.destroyJoint(joint!);
       
-      // Create new DistanceJoint with updated length
-      final jointDef = forge2d.DistanceJointDef()
+      // Create new RopeJoint with updated max length
+      final jointDef = forge2d.RopeJointDef()
         ..bodyA = player.body
         ..bodyB = body
-        ..length = newLength // Fixed orbital radius (multiplied by upgrade)
-        ..frequencyHz = 0.0 // Rigid connection - no bungee bouncing
-        ..dampingRatio = 0.0; // No damping on the joint itself
+        ..maxLength = newMaxLength; // Tight rope (110% slack) - tightens instantly when player turns
       // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
       
-      joint = forge2d.DistanceJoint(jointDef);
+      joint = forge2d.RopeJoint(jointDef);
       world.createJoint(joint!);
     }
   }
