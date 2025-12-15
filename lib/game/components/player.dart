@@ -4,7 +4,8 @@ import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 
 class Player extends BodyComponent {
-  static const double radius = 15.0;
+  static const double radius = 15.0; // Physics radius (unchanged)
+  static const double visualRadius = 30.0; // Visual radius (doubled for visibility when zoomed out)
   static const double density = 4.0; // Heavy enough to dictate movement (The Boss)
   static const double linearDamping = 4.0; // Good control
   
@@ -48,9 +49,9 @@ class Player extends BodyComponent {
   Future<void> onLoad() async {
     await super.onLoad();
     
-    // Add visual representation
+    // Add visual representation (use visualRadius for better visibility when zoomed out)
     final circle = CircleComponent(
-      radius: radius,
+      radius: visualRadius,
       paint: Paint()..color = Colors.blue,
     );
     circle.anchor = Anchor.center;
@@ -58,7 +59,7 @@ class Player extends BodyComponent {
     
     // Add inner circle for better visibility
     final innerCircle = CircleComponent(
-      radius: radius * 0.6,
+      radius: visualRadius * 0.6,
       paint: Paint()..color = Colors.lightBlue,
     );
     innerCircle.anchor = Anchor.center;

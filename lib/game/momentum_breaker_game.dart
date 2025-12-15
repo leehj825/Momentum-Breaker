@@ -315,12 +315,21 @@ class MomentumBreakerGame extends Forge2DGame
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    // Calculate zoom so that 1500 units of the world are always visible
-    // This ensures the game looks the same on Phone (Narrow) and Mac (Wide)
-    if (size.x > 0) {
-      final targetZoom = size.x / 1500.0;
+    
+    // Calculate scale needed to fit width and height
+    final double scaleX = size.x / worldSize.x;
+    final double scaleY = size.y / worldSize.y;
+    
+    // Choose the smaller scale to ensure the whole arena fits (Letterboxing)
+    // Add a small 5% margin (0.95) so walls aren't touching the edge
+    if (size.x > 0 && size.y > 0) {
+      final double targetZoom = math.min(scaleX, scaleY) * 0.95;
       camera.viewfinder.zoom = targetZoom;
     }
+    
+    // Lock camera at center of world (ensure it stays centered)
+    camera.viewfinder.position = worldSize / 2;
+    camera.viewfinder.anchor = Anchor.center;
   }
 
   @override
@@ -332,14 +341,8 @@ class MomentumBreakerGame extends Forge2DGame
       // Process enemy removals queued from collision detection
       contactListener.processEnemyRemovals();
       
-      // Update camera to follow player smoothly
-      final playerWorldPos = player.body.worldCenter;
-      final currentCameraPos = camera.viewfinder.position;
-      final cameraSpeed = 5.0;
-      
-      final targetPos = forge2d.Vector2(playerWorldPos.x, playerWorldPos.y);
-      final diff = targetPos - currentCameraPos;
-      camera.viewfinder.position = currentCameraPos + diff * cameraSpeed * dt;
+      // Camera is locked at center - no following logic needed
+      // The entire 2000x2000 arena is always visible
     }
   }
 }

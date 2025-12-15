@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'player.dart';
 
 class Weapon extends BodyComponent {
-  static const double baseRadius = 12.0; // Smaller physics radius for better balance
-  static const double visualRadius = 25.0; // Visual size stays larger
+  static const double baseRadius = 12.0; // Physics radius (unchanged)
+  static const double visualRadius = 50.0; // Visual radius (doubled for visibility when zoomed out)
   static const double baseDensity = 2.0; // Lightweight bat that accelerates instantly (The Bat)
   static const double friction = 0.0; // No friction for free swinging
   
