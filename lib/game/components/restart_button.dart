@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
 class RestartButton extends RectangleComponent 
-    with TapCallbacks, HasGameRef<MomentumBreakerGame> {
+    with TapCallbacks, HasGameReference<MomentumBreakerGame> {
   final VoidCallback onRestart;
 
   RestartButton({
@@ -31,7 +31,7 @@ class RestartButton extends RectangleComponent
   
   void _updatePosition() {
     // Use screen size for UI positioning (viewport space)
-    final screenSize = gameRef.size;
+    final screenSize = game.size;
     if (screenSize.x > 0 && screenSize.y > 0) {
       position = Vector2(screenSize.x - 120, 40);
     }

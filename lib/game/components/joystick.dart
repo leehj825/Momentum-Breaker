@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field, depend_on_referenced_packages
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:forge2d/forge2d.dart' as forge2d;
@@ -5,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
 class VirtualJoystick extends PositionComponent 
-    with HasGameRef<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
+    with HasGameReference<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
   static const double joystickRadius = 60.0;
   static const double knobRadius = 25.0;
   static const double maxDistance = joystickRadius - knobRadius;
@@ -25,7 +27,7 @@ class VirtualJoystick extends PositionComponent
     // Position joystick in bottom-left corner
     _joystickPosition = Vector2(
       joystickRadius + 20,
-      gameRef.size.y - joystickRadius - 20,
+      game.size.y - joystickRadius - 20,
     );
     _knobPosition = _joystickPosition;
     
@@ -214,10 +216,10 @@ class VirtualJoystick extends PositionComponent
 
   void _updatePlayerInput(forge2d.Vector2 direction, [double strength = 0.0]) {
     // Prevent input processing when the game is not playing
-    if (!gameRef.isPlaying) return;
+    if (!game.isPlaying) return;
     
-    if (gameRef.player.isMounted) {
-      gameRef.player.applyInput(direction, strength);
+    if (game.player.isMounted) {
+      game.player.applyInput(direction, strength);
     }
   }
 

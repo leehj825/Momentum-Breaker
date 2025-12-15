@@ -4,7 +4,7 @@ import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
-class Arena extends Component with HasGameRef<MomentumBreakerGame> {
+class Arena extends Component with HasGameReference<MomentumBreakerGame> {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -61,7 +61,7 @@ class Arena extends Component with HasGameRef<MomentumBreakerGame> {
       position: position,
     );
     
-    final wallBody = gameRef.world.createBody(wallDef);
+    final wallBody = game.world.createBody(wallDef);
     
     final halfWidth = size.x / 2;
     final halfHeight = size.y / 2;

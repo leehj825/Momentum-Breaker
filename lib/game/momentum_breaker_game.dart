@@ -339,7 +339,7 @@ enum UpgradeType {
 
 // Background overlay component that handles resizing
 class _StartOverlayBackground extends RectangleComponent 
-    with HasGameRef<MomentumBreakerGame> {
+    with HasGameReference<MomentumBreakerGame> {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -355,8 +355,8 @@ class _StartOverlayBackground extends RectangleComponent
   }
   
   void _updateSize() {
-    if (gameRef.size.x > 0 && gameRef.size.y > 0) {
-      size = gameRef.size;
+    if (game.size.x > 0 && game.size.y > 0) {
+      size = game.size;
     } else {
       // Fallback size
       size = Vector2(800, 600);

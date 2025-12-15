@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
 class TouchControl extends PositionComponent 
-    with HasGameRef<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
+    with HasGameReference<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
   // Joystick state variables
   Vector2? _startDragPosition; // The center/anchor of the joystick (FIXED during drag)
   Vector2? _currentDragPosition; // The knob/thumb position (updates during drag)
@@ -35,7 +35,7 @@ class TouchControl extends PositionComponent
   
   void _updateSize() {
     // Use screen size for UI hit detection (viewport space)
-    final screenSize = gameRef.size;
+    final screenSize = game.size;
     if (screenSize.x > 0 && screenSize.y > 0) {
       size = screenSize;
     }
@@ -105,7 +105,7 @@ class TouchControl extends PositionComponent
   @override
   bool onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    if (!gameRef.isPlaying) return false;
+    if (!game.isPlaying) return false;
     
     // Record the anchor point at initial touch - this MUST NOT CHANGE until drag ends
     final touchPos = event.canvasPosition;
@@ -119,7 +119,7 @@ class TouchControl extends PositionComponent
   @override
   bool onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    if (!_isActive || !gameRef.isPlaying || _startDragPosition == null) return false;
+    if (!_isActive || !game.isPlaying || _startDragPosition == null) return false;
     
     // Update only _currentDragPosition (anchor stays fixed)
     final newDragPos = event.canvasEndPosition;
@@ -168,7 +168,7 @@ class TouchControl extends PositionComponent
   @override
   bool onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-    if (!gameRef.isPlaying) return false;
+    if (!game.isPlaying) return false;
     
     // Treat tap as drag start (for mouse clicks)
     final touchPos = event.canvasPosition;
@@ -193,7 +193,7 @@ class TouchControl extends PositionComponent
   }
 
   void _updatePlayerMovement() {
-    if (!gameRef.isPlaying || !gameRef.player.isMounted || 
+    if (!game.isPlaying || !game.player.isMounted || 
         _startDragPosition == null || _currentDragPosition == null) {
       return;
     }
@@ -216,13 +216,13 @@ class TouchControl extends PositionComponent
     final strength = (distance / _maxRange).clamp(0.0, 1.0);
     
     // Apply input to player based on direction * strength (like standard joystick)
-    gameRef.player.applyInput(forge2dDirection, strength);
+    game.player.applyInput(forge2dDirection, strength);
   }
   
   void _stopPlayerMovement() {
     // Stop player movement by applying zero input
-    if (gameRef.player.isMounted) {
-      gameRef.player.applyInput(forge2d.Vector2.zero(), 0.0);
+    if (game.player.isMounted) {
+      game.player.applyInput(forge2d.Vector2.zero(), 0.0);
     }
   }
   
@@ -231,7 +231,7 @@ class TouchControl extends PositionComponent
     super.update(dt);
     
     // Continuously update movement while drag is active
-    if (_isActive && _startDragPosition != null && _currentDragPosition != null && gameRef.isPlaying) {
+    if (_isActive && _startDragPosition != null && _currentDragPosition != null && game.isPlaying) {
       _updatePlayerMovement();
     }
   }

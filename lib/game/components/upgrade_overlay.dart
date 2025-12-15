@@ -3,7 +3,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
-class UpgradeOverlay extends Component with HasGameRef<MomentumBreakerGame> {
+class UpgradeOverlay extends Component with HasGameReference<MomentumBreakerGame> {
   final Function(UpgradeType) onUpgradeSelected;
 
   UpgradeOverlay({required this.onUpgradeSelected});
@@ -16,7 +16,7 @@ class UpgradeOverlay extends Component with HasGameRef<MomentumBreakerGame> {
     priority = 1000;
     
     // Get screen size for UI layout (viewport space)
-    final overlaySize = gameRef.size;
+    final overlaySize = game.size;
     
     // Add overlay background
     final background = RectangleComponent(
@@ -82,7 +82,7 @@ class UpgradeOverlay extends Component with HasGameRef<MomentumBreakerGame> {
   }
 }
 
-class UpgradeButton extends RectangleComponent with TapCallbacks, HasGameRef<MomentumBreakerGame> {
+class UpgradeButton extends RectangleComponent with TapCallbacks, HasGameReference<MomentumBreakerGame> {
   final String title;
   final String description;
   final Color color;
