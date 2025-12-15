@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 class Player extends BodyComponent {
   static const double radius = 15.0; // Physics radius (unchanged)
   static const double visualRadius = 18.0; // Visual radius (smaller for better gameplay)
-  static const double density = 4.0; // Heavy enough to dictate movement (The Boss)
-  static const double linearDamping = 4.0; // Good control
+  static const double density = 10.0; // Very heavy anchor - pulls weapon without being yanked back
+  static const double linearDamping = 5.0; // High drag - stops instantly when touch released, allowing weapon to whip around
   
   forge2d.Vector2? inputDirection;
   final forge2d.Vector2 initialPosition;
@@ -70,8 +70,8 @@ class Player extends BodyComponent {
     if (direction.length > 0 && strength > 0) {
       final normalized = direction.normalized();
       // Apply WAY more force to move the heavy player fast
-      // High number necessary to overcome high density and linear damping
-      final impulseMagnitude = strength * 1000.0;
+      // Since density increased to 10.0, multiply force by 5.0x to keep same speed
+      final impulseMagnitude = strength * 5000.0;
       final impulse = forge2d.Vector2(
         normalized.x * impulseMagnitude * body.mass,
         normalized.y * impulseMagnitude * body.mass,

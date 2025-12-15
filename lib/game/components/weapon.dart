@@ -25,7 +25,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 0.5, // Stops it from drifting loosely; makes it feel "tight"
+      linearDamping: 0.1, // Very low friction - weapon slides on ice to keep momentum
       angularDamping: 0.0, // No angular damping for free rotation
     );
     
@@ -77,15 +77,15 @@ class Weapon extends BodyComponent {
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
-    // Use 2.5x the initial distance for longer reach and wider swing radius, multiplied by upgrade
+    // Use 2.5x the initial distance for longer reach and wider swing radius (150-200px), multiplied by upgrade
     final maxLength = distance * 2.5 * currentChainLengthMultiplier;
     
-    // Use RopeJoint instead of DistanceJoint for chain-like behavior
+    // Use RopeJoint for chain-like behavior - rigid rope, no bounciness
     // RopeJointDef uses default constructor, then set properties
     final jointDef = forge2d.RopeJointDef()
       ..bodyA = player.body
       ..bodyB = body
-      ..maxLength = maxLength; // Maximum rope length (allows slack)
+      ..maxLength = maxLength; // Maximum rope length (allows slack for circular swing)
     // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
     
     joint = forge2d.RopeJoint(jointDef);
@@ -101,7 +101,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: oldPos,
-      linearDamping: 0.5, // Match new damping value
+      linearDamping: 0.1, // Very low friction - weapon slides on ice to keep momentum
       angularDamping: 0.0,
     );
     
