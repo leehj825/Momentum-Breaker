@@ -72,9 +72,13 @@ class Weapon extends BodyComponent {
   }
 
   Future<void> createJoint() async {
-    // Use fixed base length for longer reach (allows wide swing radius of ~300-400 pixels)
-    // Base length of 250, multiplied by upgrade multiplier
-    final maxLength = 250.0 * currentChainLengthMultiplier;
+    // Calculate chain length based on distance between player and weapon
+    // This makes it relative to screen size (world size = screen size)
+    final playerPos = player.body.worldCenter;
+    final weaponPos = body.worldCenter;
+    final distance = (weaponPos - playerPos).length;
+    // Use 1.5x the initial distance for good swing radius, multiplied by upgrade
+    final maxLength = distance * 1.5 * currentChainLengthMultiplier;
     
     // Use RopeJoint instead of DistanceJoint for chain-like behavior
     // RopeJointDef uses default constructor, then set properties
@@ -122,8 +126,12 @@ class Weapon extends BodyComponent {
   void updateChainLength(double multiplier) {
     currentChainLengthMultiplier = multiplier;
     if (joint != null) {
-      // Use fixed base length for longer reach (allows wide swing radius)
-      final newMaxLength = 250.0 * currentChainLengthMultiplier;
+      // Calculate chain length based on current distance between player and weapon
+      final playerPos = player.body.worldCenter;
+      final weaponPos = body.worldCenter;
+      final distance = (weaponPos - playerPos).length;
+      // Use 1.5x the current distance for good swing radius, multiplied by upgrade
+      final newMaxLength = distance * 1.5 * currentChainLengthMultiplier;
       
       // Destroy old joint
       world.destroyJoint(joint!);

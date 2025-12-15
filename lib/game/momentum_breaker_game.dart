@@ -21,9 +21,8 @@ class MomentumBreakerGame extends Forge2DGame
   @override
   Color backgroundColor() => const Color(0xFF1a1a2e); // Dark blue-gray background
   
-  // Fixed world size for consistent gameplay across all platforms
-  // This is the actual physics world size - same on all devices
-  static final Vector2 worldSize = Vector2(2000, 2000);
+  // Dynamic world size - matches the device window size
+  Vector2 get worldSize => size;
   
   late Player player;
   late Weapon weapon;
@@ -59,10 +58,12 @@ class MomentumBreakerGame extends Forge2DGame
     // Set up camera
     // 1. Center the origin so (0,0) is in the middle of the screen
     camera.viewfinder.anchor = Anchor.center;
-    // 2. Move the camera to look at the CENTER of the world (CRITICAL FIX)
-    camera.viewfinder.position = worldSize / 2;
-    // 3. Set a default zoom so we can see something
-    camera.viewfinder.zoom = 0.5;
+    // 2. Move the camera to look at the CENTER of the world (matches screen center)
+    // Wait for size to be available, will be set in onGameResize
+    if (size.x > 0 && size.y > 0) {
+      camera.viewfinder.position = size / 2;
+      camera.viewfinder.zoom = 1.0; // 1:1 mapping - world size = screen size
+    }
     
     // Add UI components to camera viewfinder so they're always visible
     // (UI overlays should be in screen space, not world space)
@@ -111,13 +112,15 @@ class MomentumBreakerGame extends Forge2DGame
   }
 
   Future<void> _initializePlayerAndWeapon() async {
-    // Player starts at center of fixed world
-    final playerPos = forge2d.Vector2(worldSize.x / 2, worldSize.y / 2);
+    // Player starts at center of screen (world size = screen size)
+    final playerPos = forge2d.Vector2(size.x / 2, size.y / 2);
     player = Player(initialPosition: playerPos);
     await add(player);
     
     // Weapon starts at increased distance from player (longer reach)
-    final weaponPos = forge2d.Vector2(worldSize.x / 2 + 200, worldSize.y / 2);
+    // Use relative offset based on screen size (10% of screen width)
+    final weaponOffset = size.x * 0.1;
+    final weaponPos = forge2d.Vector2(size.x / 2 + weaponOffset, size.y / 2);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
@@ -127,10 +130,10 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _spawnEnemies() {
     _enemies.clear();
-    // Use fixed world size for consistent spawn radius across platforms
-    final spawnRadius = worldSize.x * 0.4;
-    final centerX = worldSize.x / 2;
-    final centerY = worldSize.y / 2;
+    // Use screen size for spawn radius (world size = screen size)
+    final spawnRadius = size.x * 0.4;
+    final centerX = size.x / 2;
+    final centerY = size.y / 2;
     
     for (int i = 0; i < enemiesToSpawn; i++) {
       final angle = (i / enemiesToSpawn) * 2 * math.pi;
@@ -242,13 +245,15 @@ class MomentumBreakerGame extends Forge2DGame
       gameState!.reset();
     }
     
-    // Reset player and weapon positions (use fixed world size)
-    final playerPos = forge2d.Vector2(worldSize.x / 2, worldSize.y / 2);
+    // Reset player and weapon positions (use screen size)
+    final playerPos = forge2d.Vector2(size.x / 2, size.y / 2);
     player.body.setTransform(playerPos, 0.0);
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    final weaponPos = forge2d.Vector2(worldSize.x / 2 + 200, worldSize.y / 2);
+    // Use relative offset based on screen size (10% of screen width)
+    final weaponOffset = size.x * 0.1;
+    final weaponPos = forge2d.Vector2(size.x / 2 + weaponOffset, size.y / 2);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();
     weapon.body.angularVelocity = 0.0;
@@ -275,8 +280,8 @@ class MomentumBreakerGame extends Forge2DGame
     }
     await weapon.createJoint();
     
-    // Reset camera to center of fixed world
-    camera.viewfinder.position = worldSize / 2;
+    // Reset camera to center of screen (world size = screen size)
+    camera.viewfinder.position = size / 2;
     
     // Reset enemy spawn count
     enemiesToSpawn = 5;
@@ -316,20 +321,12 @@ class MomentumBreakerGame extends Forge2DGame
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     
-    // Calculate scale needed to fit width and height
-    final double scaleX = size.x / worldSize.x;
-    final double scaleY = size.y / worldSize.y;
-    
-    // Choose the smaller scale to ensure the whole arena fits (Letterboxing)
-    // Add a small 5% margin (0.95) so walls aren't touching the edge
+    // World size now matches screen size - use 1:1 zoom (no scaling needed)
     if (size.x > 0 && size.y > 0) {
-      final double targetZoom = math.min(scaleX, scaleY) * 0.95;
-      camera.viewfinder.zoom = targetZoom;
+      camera.viewfinder.zoom = 1.0;
+      camera.viewfinder.position = size / 2;
+      camera.viewfinder.anchor = Anchor.center;
     }
-    
-    // Lock camera at center of world (ensure it stays centered)
-    camera.viewfinder.position = worldSize / 2;
-    camera.viewfinder.anchor = Anchor.center;
   }
 
   @override
