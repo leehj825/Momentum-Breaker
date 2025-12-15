@@ -34,7 +34,7 @@ class Enemy extends BodyComponent {
       ..setAsBox(halfSize, halfSize, forge2d.Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
-      ..density = 0.5 // Lighter than weapon so they fly when hit
+      ..density = 2.0 // More mass so they don't fly off screen instantly when hit by heavier weapon
       ..friction = 0.3
       ..restitution = 0.1
       ..isSensor = false // Not a sensor so it can collide

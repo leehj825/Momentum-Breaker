@@ -8,7 +8,7 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 12.0; // Physics radius (unchanged)
   static const double visualRadius = 20.0; // Visual radius (smaller for better gameplay)
-  static const double baseDensity = 2.0; // Lightweight bat that accelerates instantly (The Bat)
+  static const double baseDensity = 8.0; // Heavy object resists changing direction - increases centrifugal pull
   static const double friction = 0.0; // No friction for free swinging
   
   final Player player;
@@ -25,7 +25,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 0.1, // Very low friction - weapon slides on ice to keep momentum
+      linearDamping: 0.01, // Almost zero drag - weapon slides almost forever, maintains momentum
       angularDamping: 0.0, // No angular damping for free rotation
     );
     
@@ -101,7 +101,7 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: oldPos,
-      linearDamping: 0.1, // Very low friction - weapon slides on ice to keep momentum
+      linearDamping: 0.01, // Almost zero drag - weapon slides almost forever, maintains momentum
       angularDamping: 0.0,
     );
     
