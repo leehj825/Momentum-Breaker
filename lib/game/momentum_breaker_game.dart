@@ -118,8 +118,8 @@ class MomentumBreakerGame extends Forge2DGame
     await add(player);
     
     // Weapon starts at increased distance from player (longer reach)
-    // Use relative offset based on screen size (10% of screen width)
-    final weaponOffset = size.x * 0.1;
+    // Use relative offset based on screen size (20% of screen width for more reach)
+    final weaponOffset = size.x * 0.2;
     final weaponPos = forge2d.Vector2(size.x / 2 + weaponOffset, size.y / 2);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
@@ -251,8 +251,8 @@ class MomentumBreakerGame extends Forge2DGame
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    // Use relative offset based on screen size (10% of screen width)
-    final weaponOffset = size.x * 0.1;
+    // Use relative offset based on screen size (20% of screen width for more reach)
+    final weaponOffset = size.x * 0.2;
     final weaponPos = forge2d.Vector2(size.x / 2 + weaponOffset, size.y / 2);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();

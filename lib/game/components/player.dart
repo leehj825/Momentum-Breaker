@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 class Player extends BodyComponent {
   static const double radius = 15.0; // Physics radius (unchanged)
-  static const double visualRadius = 30.0; // Visual radius (doubled for visibility when zoomed out)
+  static const double visualRadius = 18.0; // Visual radius (smaller for better gameplay)
   static const double density = 4.0; // Heavy enough to dictate movement (The Boss)
   static const double linearDamping = 4.0; // Good control
   
