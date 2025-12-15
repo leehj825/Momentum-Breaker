@@ -23,6 +23,10 @@ class StartButton extends RectangleComponent
     // Use paint property like UpgradeButton does
     paint = Paint()..color = Colors.green.withOpacity(0.9);
     
+    // UI components should stick to screen (viewport space), not world space
+    // Note: Since this component is added to camera.viewfinder, it's already in viewport space
+    // positionType = PositionType.viewport; // Uncomment if available in your Flame version
+    
     priority = 1001; // Very high priority to render on top and receive events
     
     // Debug: print to verify button is created

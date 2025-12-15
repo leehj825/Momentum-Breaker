@@ -20,6 +20,10 @@ class RestartButton extends RectangleComponent
     
     paint = Paint()..color = Colors.green.withOpacity(0.8);
     
+    // UI components should stick to screen (viewport space), not world space
+    // Note: Since this component is added to camera.viewfinder, it's already in viewport space
+    // positionType = PositionType.viewport; // Uncomment if available in your Flame version
+    
     priority = 200; // High priority to receive events
   }
   

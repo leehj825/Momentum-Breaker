@@ -22,10 +22,8 @@ class MomentumBreakerGame extends Forge2DGame
   Color backgroundColor() => const Color(0xFF1a1a2e); // Dark blue-gray background
   
   // Fixed world size for consistent gameplay across all platforms
-  static final Vector2 fixedGameSize = Vector2(2000, 2000);
-  
-  // Design Resolution: How much of the world we want to see horizontally
-  static const double visibleGameWidth = 1500.0;
+  // This is the actual physics world size - same on all devices
+  static final Vector2 worldSize = Vector2(1500, 1500);
   
   late Player player;
   late Weapon weapon;
@@ -60,10 +58,12 @@ class MomentumBreakerGame extends Forge2DGame
     
     // Set up camera
     camera.viewfinder.anchor = Anchor.center;
-    camera.viewfinder.position = fixedGameSize / 2; // Start at center of arena
+    camera.viewfinder.position = worldSize / 2; // Look at the center of the world
     
-    // Calculate initial zoom based on current screen size
-    _updateCameraZoom();
+    // Calculate initial zoom to fit the world
+    if (size.x > 0) {
+      camera.viewfinder.zoom = size.x / 1500.0;
+    }
     
     // Add UI components to camera viewfinder so they're always visible
     // (UI overlays should be in screen space, not world space)
@@ -113,12 +113,12 @@ class MomentumBreakerGame extends Forge2DGame
 
   Future<void> _initializePlayerAndWeapon() async {
     // Player starts at center of fixed world
-    final playerPos = forge2d.Vector2(fixedGameSize.x / 2, fixedGameSize.y / 2);
+    final playerPos = forge2d.Vector2(worldSize.x / 2, worldSize.y / 2);
     player = Player(initialPosition: playerPos);
     await add(player);
     
     // Weapon starts at increased distance from player (longer reach)
-    final weaponPos = forge2d.Vector2(fixedGameSize.x / 2 + 200, fixedGameSize.y / 2);
+    final weaponPos = forge2d.Vector2(worldSize.x / 2 + 200, worldSize.y / 2);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
@@ -129,9 +129,9 @@ class MomentumBreakerGame extends Forge2DGame
   void _spawnEnemies() {
     _enemies.clear();
     // Use fixed world size for consistent spawn radius across platforms
-    final spawnRadius = fixedGameSize.x * 0.4;
-    final centerX = fixedGameSize.x / 2;
-    final centerY = fixedGameSize.y / 2;
+    final spawnRadius = worldSize.x * 0.4;
+    final centerX = worldSize.x / 2;
+    final centerY = worldSize.y / 2;
     
     for (int i = 0; i < enemiesToSpawn; i++) {
       final angle = (i / enemiesToSpawn) * 2 * math.pi;
@@ -244,12 +244,12 @@ class MomentumBreakerGame extends Forge2DGame
     }
     
     // Reset player and weapon positions (use fixed world size)
-    final playerPos = forge2d.Vector2(fixedGameSize.x / 2, fixedGameSize.y / 2);
+    final playerPos = forge2d.Vector2(worldSize.x / 2, worldSize.y / 2);
     player.body.setTransform(playerPos, 0.0);
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    final weaponPos = forge2d.Vector2(fixedGameSize.x / 2 + 200, fixedGameSize.y / 2);
+    final weaponPos = forge2d.Vector2(worldSize.x / 2 + 200, worldSize.y / 2);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();
     weapon.body.angularVelocity = 0.0;
@@ -277,7 +277,7 @@ class MomentumBreakerGame extends Forge2DGame
     await weapon.createJoint();
     
     // Reset camera to center of fixed world
-    camera.viewfinder.position = Vector2(fixedGameSize.x / 2, fixedGameSize.y / 2);
+    camera.viewfinder.position = worldSize / 2;
     
     // Reset enemy spawn count
     enemiesToSpawn = 5;
@@ -316,15 +316,10 @@ class MomentumBreakerGame extends Forge2DGame
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    // Calculate zoom to ensure 'visibleGameWidth' units are always shown
-    _updateCameraZoom();
-  }
-  
-  void _updateCameraZoom() {
-    // Calculate zoom factor based on screen width
-    // This ensures we always see exactly 'visibleGameWidth' units horizontally
+    // Calculate zoom to fit the world width into the screen width
+    // "1500" is our safe visible width (worldSize.x)
     if (size.x > 0) {
-      final zoom = size.x / visibleGameWidth;
+      final zoom = size.x / 1500.0;
       camera.viewfinder.zoom = zoom;
     }
   }

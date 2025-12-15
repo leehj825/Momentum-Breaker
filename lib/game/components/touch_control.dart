@@ -23,6 +23,11 @@ class TouchControl extends PositionComponent
     // Cover entire screen to receive touch events
     position = Vector2.zero();
     anchor = Anchor.topLeft;
+    
+    // UI components should stick to screen (viewport space), not world space
+    // Note: Since this component is added to camera.viewfinder, it's already in viewport space
+    // positionType = PositionType.viewport; // Uncomment if available in your Flame version
+    
     priority = 50; // Lower than UI buttons but higher than game objects
   }
   
