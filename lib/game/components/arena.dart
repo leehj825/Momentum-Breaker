@@ -9,7 +9,8 @@ class Arena extends Component with HasGameRef<MomentumBreakerGame> {
   Future<void> onLoad() async {
     await super.onLoad();
     
-    final worldSize = gameRef.size;
+    // Use fixed world size instead of screen size for consistent gameplay
+    final worldSize = MomentumBreakerGame.fixedGameSize;
     
     // Add floor/background (render first, behind everything)
     final floor = RectangleComponent(

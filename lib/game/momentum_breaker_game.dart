@@ -20,6 +20,10 @@ class MomentumBreakerGame extends Forge2DGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
   @override
   Color backgroundColor() => const Color(0xFF1a1a2e); // Dark blue-gray background
+  
+  // Fixed world size for consistent gameplay across all platforms
+  static final Vector2 fixedGameSize = Vector2(2000, 2000);
+  
   late Player player;
   late Weapon weapon;
   late TouchControl touchControl;
@@ -53,6 +57,7 @@ class MomentumBreakerGame extends Forge2DGame
     
     // Set up camera
     camera.viewfinder.anchor = Anchor.center;
+    camera.viewfinder.zoom = 1.0; // Consistent view scale
     
     // Add UI components to camera viewfinder so they're always visible
     // (UI overlays should be in screen space, not world space)
@@ -100,13 +105,13 @@ class MomentumBreakerGame extends Forge2DGame
   }
 
   Future<void> _initializePlayerAndWeapon() async {
-    // Player starts at center
-    final playerPos = forge2d.Vector2(size.x / 2, size.y / 2);
+    // Player starts at center of fixed world
+    final playerPos = forge2d.Vector2(fixedGameSize.x / 2, fixedGameSize.y / 2);
     player = Player(initialPosition: playerPos);
     await add(player);
     
-    // Weapon starts at a reasonable distance from player
-    final weaponPos = forge2d.Vector2(size.x / 2 + 60, size.y / 2);
+    // Weapon starts at increased distance from player (longer reach)
+    final weaponPos = forge2d.Vector2(fixedGameSize.x / 2 + 200, fixedGameSize.y / 2);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
@@ -116,10 +121,10 @@ class MomentumBreakerGame extends Forge2DGame
 
   void _spawnEnemies() {
     _enemies.clear();
-    // Increase spawn radius to give player more breathing room at start
-    final spawnRadius = size.x * 0.4; // Increased from 0.3 to 0.4
-    final centerX = size.x / 2;
-    final centerY = size.y / 2;
+    // Use fixed world size for consistent spawn radius across platforms
+    final spawnRadius = fixedGameSize.x * 0.4;
+    final centerX = fixedGameSize.x / 2;
+    final centerY = fixedGameSize.y / 2;
     
     for (int i = 0; i < enemiesToSpawn; i++) {
       final angle = (i / enemiesToSpawn) * 2 * math.pi;
@@ -230,13 +235,13 @@ class MomentumBreakerGame extends Forge2DGame
       gameState!.reset();
     }
     
-    // Reset player and weapon positions
-    final playerPos = forge2d.Vector2(size.x / 2, size.y / 2);
+    // Reset player and weapon positions (use fixed world size)
+    final playerPos = forge2d.Vector2(fixedGameSize.x / 2, fixedGameSize.y / 2);
     player.body.setTransform(playerPos, 0.0);
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    final weaponPos = forge2d.Vector2(size.x / 2 + 60, size.y / 2);
+    final weaponPos = forge2d.Vector2(fixedGameSize.x / 2 + 200, fixedGameSize.y / 2);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();
     weapon.body.angularVelocity = 0.0;
@@ -263,8 +268,8 @@ class MomentumBreakerGame extends Forge2DGame
     }
     await weapon.createJoint();
     
-    // Reset camera
-    camera.viewfinder.position = Vector2(size.x / 2, size.y / 2);
+    // Reset camera to center of fixed world
+    camera.viewfinder.position = Vector2(fixedGameSize.x / 2, fixedGameSize.y / 2);
     
     // Reset enemy spawn count
     enemiesToSpawn = 5;
