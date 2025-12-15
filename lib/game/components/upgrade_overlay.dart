@@ -16,8 +16,10 @@ class UpgradeOverlay extends Component with HasGameReference<MomentumBreakerGame
     priority = 1000;
     
     // UI components should stick to screen (viewport space), not world space
-    // Note: Since this component is added to camera.viewfinder, it's already in viewport space
-    // positionType = PositionType.viewport; // Uncomment if available in your Flame version
+    // This tells Flame to ignore the camera and draw directly on the glass
+    // Note: PositionType.viewport may not be available in all Flame versions
+    // Components added to game root (not camera.viewfinder) should work correctly
+    // positionType = PositionType.viewport; // Uncomment if available
     
     // Get screen size for UI layout (viewport space)
     final overlaySize = game.size;

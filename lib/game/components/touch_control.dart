@@ -25,8 +25,10 @@ class TouchControl extends PositionComponent
     anchor = Anchor.topLeft;
     
     // UI components should stick to screen (viewport space), not world space
-    // Note: Since this component is added to camera.viewfinder, it's already in viewport space
-    // positionType = PositionType.viewport; // Uncomment if available in your Flame version
+    // This tells Flame to ignore the camera and draw directly on the glass
+    // Note: PositionType.viewport may not be available in all Flame versions
+    // Components added to game root (not camera.viewfinder) should work correctly
+    // positionType = PositionType.viewport; // Uncomment if available
     
     priority = 50; // Lower than UI buttons but higher than game objects
   }

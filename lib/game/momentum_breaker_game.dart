@@ -75,9 +75,9 @@ class MomentumBreakerGame extends Forge2DGame
     await _initializePlayerAndWeapon();
     
     // Create touch control (replaces joystick)
-    // Add to camera.viewfinder so it stays on screen (viewport space)
+    // Add directly to game root (with viewport positioning)
     touchControl = TouchControl();
-    await camera.viewfinder.add(touchControl);
+    await add(touchControl);
     
     // Create restart button (will be added when game over)
     restartButton = RestartButton(
@@ -86,16 +86,16 @@ class MomentumBreakerGame extends Forge2DGame
     // Don't add it yet - will add on game over
     
     // Create start button overlay (shown initially)
-    // Add to camera.viewfinder so it stays on screen (viewport space)
+    // Add directly to game root (with viewport positioning)
     final background = _StartOverlayBackground();
     background.priority = 1000; // Very high priority
-    await camera.viewfinder.add(background);
+    await add(background);
     
     startButton = StartButton(
       onStart: _startGame,
     );
     startButton!.priority = 1001; // Even higher priority
-    await camera.viewfinder.add(startButton!);
+    await add(startButton!);
     
     // Debug: verify button was added
     print('StartButton added to game. isMounted: ${startButton!.isMounted}, position: ${startButton!.position}, size: ${startButton!.size}');
@@ -158,7 +158,7 @@ class MomentumBreakerGame extends Forge2DGame
     // Engine keeps running, game logic is paused via isPlaying getter
     
     // Remove any existing overlay first
-    camera.viewfinder.children.whereType<UpgradeOverlay>().forEach((existingOverlay) {
+    children.whereType<UpgradeOverlay>().forEach((existingOverlay) {
       existingOverlay.removeFromParent();
     });
     
@@ -173,8 +173,8 @@ class MomentumBreakerGame extends Forge2DGame
       },
     );
     
-    // Add to camera.viewfinder so it stays on screen (viewport space)
-    await camera.viewfinder.add(overlay);
+    // Add directly to game root (with viewport positioning)
+    await add(overlay);
   }
 
   void _applyUpgrade(UpgradeType upgradeType) {
@@ -285,15 +285,15 @@ class MomentumBreakerGame extends Forge2DGame
     _spawnEnemies();
     
     // Show start button overlay and pause game
-    // Add to camera.viewfinder so it stays on screen (viewport space)
+    // Add directly to game root (with viewport positioning)
     final background = _StartOverlayBackground();
     background.priority = 1000;
-    await camera.viewfinder.add(background);
+    await add(background);
     startOverlay = background;
     
     if (startButton != null && !startButton!.isMounted) {
       startButton!.priority = 1001;
-      await camera.viewfinder.add(startButton!);
+      await add(startButton!);
     }
     if (restartButton != null && restartButton!.isMounted) {
       restartButton!.removeFromParent();
@@ -306,8 +306,8 @@ class MomentumBreakerGame extends Forge2DGame
     // Engine keeps running, game logic is paused via isPlaying getter
     // Show restart button on game over
     if (restartButton != null && !restartButton!.isMounted) {
-      // Add to camera.viewfinder so it stays on screen (viewport space)
-      camera.viewfinder.add(restartButton!);
+      // Add directly to game root (with viewport positioning)
+      add(restartButton!);
     }
     print("Game Over! Press Restart to play again.");
   }
@@ -356,9 +356,13 @@ class _StartOverlayBackground extends RectangleComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // This tells Flame to ignore the camera and draw directly on the glass
+    // Note: PositionType.viewport may not be available in all Flame versions
+    // Components added to game root (not camera.viewfinder) should work correctly
+    // positionType = PositionType.viewport; // Uncomment if available
     paint = Paint()..color = Colors.black.withOpacity(0.8);
     anchor = Anchor.topLeft;
-    position = Vector2.zero();
+    position = Vector2.zero(); // Top-left of screen
   }
   
   @override
