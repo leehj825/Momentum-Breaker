@@ -29,9 +29,15 @@ class TouchControl extends PositionComponent
   @override
   void onMount() {
     super.onMount();
-    // Set size to cover entire game area
-    if (gameRef.size.x > 0 && gameRef.size.y > 0) {
-      size = gameRef.size;
+    // Set size to cover entire screen area (viewport space)
+    _updateSize();
+  }
+  
+  void _updateSize() {
+    // Use screen size for UI hit detection (viewport space)
+    final screenSize = gameRef.size;
+    if (screenSize.x > 0 && screenSize.y > 0) {
+      size = screenSize;
     }
   }
   
@@ -39,7 +45,7 @@ class TouchControl extends PositionComponent
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     // Update size when game resizes
-    this.size = size;
+    _updateSize();
   }
   
   @override

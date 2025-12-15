@@ -37,10 +37,11 @@ class StartButton extends RectangleComponent
   }
   
   void _updatePosition() {
-    final gameSize = gameRef.size;
-    print('StartButton _updatePosition: gameSize=$gameSize, current position=$position');
-    if (gameSize.x > 0 && gameSize.y > 0) {
-      position = Vector2(gameSize.x / 2, gameSize.y / 2);
+    // Use screen size for UI positioning (viewport space)
+    final screenSize = gameRef.size;
+    print('StartButton _updatePosition: screenSize=$screenSize, current position=$position');
+    if (screenSize.x > 0 && screenSize.y > 0) {
+      position = Vector2(screenSize.x / 2, screenSize.y / 2);
       print('StartButton positioned at center: $position');
     } else {
       // Try a fixed position that should be visible

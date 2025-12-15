@@ -15,14 +15,32 @@ class RestartButton extends RectangleComponent
   Future<void> onLoad() async {
     await super.onLoad();
     
-    // Position button in top-right corner
-    position = Vector2(gameRef.size.x - 120, 40);
     size = Vector2(100, 50);
     anchor = Anchor.center;
     
     paint = Paint()..color = Colors.green.withOpacity(0.8);
     
     priority = 200; // High priority to receive events
+  }
+  
+  @override
+  void onMount() {
+    super.onMount();
+    _updatePosition();
+  }
+  
+  void _updatePosition() {
+    // Use screen size for UI positioning (viewport space)
+    final screenSize = gameRef.size;
+    if (screenSize.x > 0 && screenSize.y > 0) {
+      position = Vector2(screenSize.x - 120, 40);
+    }
+  }
+  
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    _updatePosition();
   }
 
   @override

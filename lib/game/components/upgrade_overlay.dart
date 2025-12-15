@@ -15,19 +15,22 @@ class UpgradeOverlay extends Component with HasGameRef<MomentumBreakerGame> {
     // High priority to ensure overlay receives events and renders on top
     priority = 1000;
     
+    // Get screen size for UI layout (viewport space)
+    final overlaySize = gameRef.size;
+    
     // Add overlay background
     final background = RectangleComponent(
-      size: gameRef.size,
+      size: overlaySize,
       paint: Paint()..color = Colors.black.withOpacity(0.7),
     );
     add(background);
     
     // Add upgrade buttons
-    final buttonWidth = gameRef.size.x * 0.25;
+    final buttonWidth = overlaySize.x * 0.25;
     final buttonHeight = 100.0;
-    final spacing = gameRef.size.x * 0.05;
-    final startX = (gameRef.size.x - (buttonWidth * 3 + spacing * 2)) / 2;
-    final y = gameRef.size.y / 2;
+    final spacing = overlaySize.x * 0.05;
+    final startX = (overlaySize.x - (buttonWidth * 3 + spacing * 2)) / 2;
+    final y = overlaySize.y / 2;
     
     // Heavy Hitter button
     final heavyHitterButton = UpgradeButton(
@@ -72,7 +75,7 @@ class UpgradeOverlay extends Component with HasGameRef<MomentumBreakerGame> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      position: Vector2(gameRef.size.x / 2, y - 150),
+      position: Vector2(overlaySize.x / 2, y - 150),
       anchor: Anchor.center,
     );
     add(title);
