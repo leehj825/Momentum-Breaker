@@ -37,7 +37,7 @@ class Weapon extends BodyComponent {
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
       ..friction = friction // No friction for free swinging
-      ..restitution = 0.4 // Higher bounce for more dynamic collisions
+      ..restitution = 0.5 // Higher bounce preserves momentum when hitting walls/enemies
       ..userData = "weapon"; // String identifier for collision detection
     
     body.createFixture(fixtureDef);
@@ -77,15 +77,16 @@ class Weapon extends BodyComponent {
     final playerPos = player.body.worldCenter;
     final weaponPos = body.worldCenter;
     final distance = (weaponPos - playerPos).length;
-    // Use 2.5x the initial distance for longer reach and wider swing radius (150-200px), multiplied by upgrade
-    final maxLength = distance * 2.5 * currentChainLengthMultiplier;
+    // Use 1.1x the initial distance - tight rope (only 10% slack) for instant circular momentum
+    // When player turns, rope immediately constrains weapon, forcing it to swing in an arc
+    final maxLength = distance * 1.1 * currentChainLengthMultiplier;
     
-    // Use RopeJoint for chain-like behavior - rigid rope, no bounciness
+    // Use RopeJoint for chain-like behavior - tight rope for pivot mechanics
     // RopeJointDef uses default constructor, then set properties
     final jointDef = forge2d.RopeJointDef()
       ..bodyA = player.body
       ..bodyB = body
-      ..maxLength = maxLength; // Maximum rope length (allows slack for circular swing)
+      ..maxLength = maxLength; // Maximum rope length (tight - enables centrifugal force)
     // localAnchorA and localAnchorB default to Vector2.zero() (body centers)
     
     joint = forge2d.RopeJoint(jointDef);
@@ -113,7 +114,7 @@ class Weapon extends BodyComponent {
     final fixtureDef = FixtureDef(shape)
       ..density = baseDensity * currentMassMultiplier
       ..friction = friction // Use constant value
-      ..restitution = 0.4
+      ..restitution = 0.5 // Higher bounce preserves momentum when hitting walls/enemies
       ..userData = "weapon";
     
     body.createFixture(fixtureDef);
@@ -130,8 +131,8 @@ class Weapon extends BodyComponent {
       final playerPos = player.body.worldCenter;
       final weaponPos = body.worldCenter;
       final distance = (weaponPos - playerPos).length;
-      // Use 2.5x the current distance for longer reach and wider swing radius, multiplied by upgrade
-      final newMaxLength = distance * 2.5 * currentChainLengthMultiplier;
+      // Use 1.1x the current distance - tight rope (only 10% slack) for instant circular momentum
+      final newMaxLength = distance * 1.1 * currentChainLengthMultiplier;
       
       // Destroy old joint
       world.destroyJoint(joint!);

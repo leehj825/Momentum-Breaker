@@ -250,9 +250,9 @@ class MomentumBreakerGame extends Forge2DGame
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    // Weapon starts with slack - spawn at fixed distance (150px) from player
-    // This ensures room to accelerate and creates initial swing potential
-    final weaponPos = forge2d.Vector2(playerPos.x + 150.0, playerPos.y);
+    // Weapon starts further away (250px) to compensate for tighter rope (1.1x instead of 2.5x)
+    // This provides both long reach AND swing tension for circular momentum
+    final weaponPos = forge2d.Vector2(playerPos.x + 250.0, playerPos.y);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();
     weapon.body.angularVelocity = 0.0;
