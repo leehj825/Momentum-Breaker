@@ -8,8 +8,8 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 12.0;
   static const double visualRadius = 20.0;
-  static const double baseDensity = 5.0; // Heavy enough to hit hard
-  static const double linearDamping = 0.2; // Very low friction. Preserves momentum for swings
+  static const double baseDensity = 3.0; // Lighter weapon accelerates faster
+  static const double linearDamping = 0.1; // Very low friction. Preserves momentum for swings
   static const double friction = 0.0; // No friction against walls
   static const double baseMaxLength = 250.0; // Fixed reach (base)
   
@@ -88,9 +88,10 @@ class Weapon extends BodyComponent {
       // Normalize the direction
       final normalized = direction.normalized();
       
-      // Apply a gentle continuous Force in that direction
-      // Formula: force = direction * (body.mass * 50.0)
-      final forceMagnitude = body.mass * 50.0;
+      // Apply a continuous Force in that direction to keep rope taut
+      // Increased force multiplier for faster acceleration and more energetic swings
+      // Formula: force = direction * (body.mass * 100.0)
+      final forceMagnitude = body.mass * 100.0;
       final force = forge2d.Vector2(
         normalized.x * forceMagnitude,
         normalized.y * forceMagnitude,

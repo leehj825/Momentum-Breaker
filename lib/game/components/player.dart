@@ -7,8 +7,8 @@ class Player extends BodyComponent {
   static const double radius = 15.0;
   static const double visualRadius = 18.0;
   static const double density = 20.0; // Heavy enough to pull the weapon without getting yanked
-  static const double linearDamping = 15.0; // Stops instantly when you let go. This "snap" stop is crucial for whipping the weapon
-  static const double speed = 200.0; // Movement speed for velocity-based control
+  static const double linearDamping = 10.0; // Lower damping makes player feel less sluggish, while still stopping quickly enough to "whip" the chain
+  static const double speed = 400.0; // Increased movement speed for snappier, more responsive control
   
   forge2d.Vector2? inputDirection;
   double inputStrength = 0.0;
