@@ -78,30 +78,20 @@ class Weapon extends BodyComponent {
   void update(double dt) {
     super.update(dt);
     
-    // ARTIFICIAL TENSION SYSTEM - High Speed Whip Physics
-    // Constantly push weapon away from player (simulating centrifugal force)
-    final playerPos = player.body.worldCenter;
-    final myPos = body.worldCenter;
-    final diff = myPos - playerPos;
-    
-    if (diff.length > 0.1) {
-      final direction = diff.normalized();
-      // Apply continuous outward force to keep chain taut
-      // 2000.0 multiplier gives it a strong "flinging" tendency
-      final forceMagnitude = body.mass * 2000.0;
-      final force = forge2d.Vector2(
-        direction.x * forceMagnitude,
-        direction.y * forceMagnitude,
-      );
-      
-      body.applyForce(force);
-    }
+    // Chain Physics: Weapon moves only via physics momentum and chain pull
+    // No artificial pushing forces - the weapon is "pulled only" by the RopeJoint
+    // With low damping (0.05), the weapon's inertia keeps the chain tight naturally
   }
 
   Future<void> createJoint() async {
-    // Use fixed maxLength with multiplier for upgrades
-    // No slack multiplier needed because Artificial Tension will keep it at max length naturally
-    final maxLength = baseMaxLength * currentChainLengthMultiplier;
+    // Chain Physics: RopeJoint only pulls when fully extended
+    final playerPos = player.body.worldCenter;
+    final weaponPos = body.worldCenter;
+    final distance = (weaponPos - playerPos).length;
+    
+    // Set max length slightly longer than current distance (5% slack)
+    // This ensures it only pulls when fully extended, allowing natural chain physics
+    final maxLength = distance * 1.05 * currentChainLengthMultiplier;
     
     final jointDef = forge2d.RopeJointDef()
       ..bodyA = player.body
@@ -155,8 +145,13 @@ class Weapon extends BodyComponent {
       // Destroy old joint
       world.destroyJoint(joint!);
       
-      // Create new RopeJoint with updated max length
-      final maxLength = baseMaxLength * currentChainLengthMultiplier;
+      // Create new RopeJoint with updated max length (with slack)
+      final playerPos = player.body.worldCenter;
+      final weaponPos = body.worldCenter;
+      final distance = (weaponPos - playerPos).length;
+      
+      // Set max length with 5% slack for chain physics
+      final maxLength = distance * 1.05 * currentChainLengthMultiplier;
       final jointDef = forge2d.RopeJointDef()
         ..bodyA = player.body
         ..bodyB = body
