@@ -287,7 +287,7 @@ class MomentumBreakerGame extends Forge2DGame
     weapon.currentChainLengthMultiplier = 1.0; // Base multiplier (1.2 rope length is applied in createJoint)
     weapon.hasSpikes = false;
     
-    // Remove spikes visually if they exist (spikes are RectangleComponents added after initial load)
+    // Remove spikes visually and reset physics radius
     final spikesToRemove = <Component>[];
     for (final child in weapon.children) {
       if (child is RectangleComponent && child != weapon.children.first) {
@@ -296,6 +296,10 @@ class MomentumBreakerGame extends Forge2DGame
     }
     for (final spike in spikesToRemove) {
       spike.removeFromParent();
+    }
+    // Reset weapon's collision radius if spikes were removed
+    if (weapon.hasSpikes) {
+      weapon.removeSpikes();
     }
     
     // Recreate joint with reset chain length

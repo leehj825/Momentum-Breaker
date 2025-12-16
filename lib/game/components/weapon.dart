@@ -167,9 +167,9 @@ class Weapon extends BodyComponent {
     hasSpikes = true;
     
     // Add visual spikes
+    final spikeLength = visualRadius * 0.4;
     for (int i = 0; i < 8; i++) {
       final angle = (i / 8) * 2 * math.pi;
-      final spikeLength = visualRadius * 0.4;
       final spikeX = spikeLength * math.cos(angle);
       final spikeY = spikeLength * math.sin(angle);
       
@@ -182,6 +182,47 @@ class Weapon extends BodyComponent {
       spike.anchor = Anchor.bottomCenter;
       add(spike);
     }
+    
+    // FUNCTIONAL: Increase weapon's collision radius to make it easier to hit enemies
+    // Spikes extend outward, so increase physics radius by spike length
+    final newRadius = baseRadius + spikeLength * 0.6; // 60% of spike length for effective hitbox
+    
+    // Remove old fixture
+    final oldFixture = body.fixtures.first;
+    body.destroyFixture(oldFixture);
+    
+    // Create new fixture with larger radius
+    final newShape = CircleShape();
+    newShape.radius = newRadius;
+    
+    final newFixtureDef = FixtureDef(newShape)
+      ..density = baseDensity * currentMassMultiplier
+      ..friction = friction
+      ..restitution = 0.5
+      ..userData = "weapon";
+    
+    body.createFixture(newFixtureDef);
+  }
+
+  void removeSpikes() {
+    if (!hasSpikes) return;
+    hasSpikes = false;
+    
+    // Reset weapon's collision radius back to base
+    final oldFixture = body.fixtures.first;
+    body.destroyFixture(oldFixture);
+    
+    // Create new fixture with base radius
+    final newShape = CircleShape();
+    newShape.radius = baseRadius;
+    
+    final newFixtureDef = FixtureDef(newShape)
+      ..density = baseDensity * currentMassMultiplier
+      ..friction = friction
+      ..restitution = 0.5
+      ..userData = "weapon";
+    
+    body.createFixture(newFixtureDef);
   }
 
   forge2d.Vector2 getVelocity() {
