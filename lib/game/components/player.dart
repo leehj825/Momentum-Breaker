@@ -4,12 +4,14 @@ import 'package:forge2d/forge2d.dart' as forge2d;
 import 'package:flutter/material.dart';
 
 class Player extends BodyComponent {
-  static const double radius = 15.0; // Physics radius (unchanged)
-  static const double visualRadius = 18.0; // Visual radius (smaller for better gameplay)
-  static const double density = 50.0; // Ultra-heavy - ~5x heavier than weapon, acts as immovable anchor/pivot point
-  static const double linearDamping = 10.0; // Very high drag - stops instantly when input stops, transfers energy to chain (whip effect)
+  static const double radius = 15.0;
+  static const double visualRadius = 18.0;
+  static const double density = 20.0; // Heavy enough to pull the weapon without getting yanked
+  static const double linearDamping = 15.0; // Stops instantly when you let go. This "snap" stop is crucial for whipping the weapon
+  static const double speed = 200.0; // Movement speed for velocity-based control
   
   forge2d.Vector2? inputDirection;
+  double inputStrength = 0.0;
   final forge2d.Vector2 initialPosition;
 
   Player({required this.initialPosition});
@@ -24,23 +26,23 @@ class Player extends BodyComponent {
     
     final body = world.createBody(bodyDef);
     
-    // Set initial velocity to zero to prevent drift
+    // Set initial velocity to zero
     body.linearVelocity = forge2d.Vector2.zero();
     body.angularVelocity = 0.0;
     
-    // Shrink hitbox: make physics shape smaller than visual size (4px buffer)
+    // Physics shape
     final physicsRadius = radius - 4.0;
     final shape = CircleShape();
-    shape.radius = physicsRadius; // Use smaller radius for physics
+    shape.radius = physicsRadius;
     
     final fixtureDef = FixtureDef(shape)
       ..density = density
       ..friction = 0.3
-      ..restitution = 0.1
-      ..userData = "player"; // String identifier for collision detection
+      ..restitution = 0.0 // No bounce
+      ..userData = "player";
     
     body.createFixture(fixtureDef);
-    body.userData = "player"; // Also store on body for easier access
+    body.userData = "player";
     
     return body;
   }
@@ -49,7 +51,7 @@ class Player extends BodyComponent {
   Future<void> onLoad() async {
     await super.onLoad();
     
-    // Add visual representation (use visualRadius for better visibility when zoomed out)
+    // Add visual representation
     final circle = CircleComponent(
       radius: visualRadius,
       paint: Paint()..color = Colors.blue,
@@ -67,23 +69,26 @@ class Player extends BodyComponent {
   }
 
   void applyInput(forge2d.Vector2 direction, double strength) {
-    if (direction.length > 0 && strength > 0) {
-      final normalized = direction.normalized();
-      // Apply WAY more force to move the heavy player fast
-      // Since density increased to 50.0, multiply force by 10.0x to keep same speed
-      final impulseMagnitude = strength * 10000.0;
-      final impulse = forge2d.Vector2(
-        normalized.x * impulseMagnitude * body.mass,
-        normalized.y * impulseMagnitude * body.mass,
-      );
-      body.applyLinearImpulse(impulse);
-    }
+    // Store input for velocity-based movement
+    inputDirection = direction;
+    inputStrength = strength;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    // Input is handled externally via applyInput
+    
+    // Velocity-based movement: 1:1 control
+    // If joystick moves, player moves. If joystick stops, player stops.
+    if (inputDirection != null && inputStrength > 0) {
+      final velocity = forge2d.Vector2(
+        inputDirection!.x * speed * inputStrength,
+        inputDirection!.y * speed * inputStrength,
+      );
+      body.linearVelocity = velocity;
+    } else {
+      // Stop immediately when no input
+      body.linearVelocity = forge2d.Vector2.zero();
+    }
   }
 }
-

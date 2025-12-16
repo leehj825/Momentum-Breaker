@@ -9,6 +9,8 @@ class Enemy extends BodyComponent {
   static const double size = 20.0;
   static const double speed = 50.0;
   static const double health = 100.0;
+  static const double density = 1.0; // Lighter than weapon
+  static const double linearDamping = 5.0; // They shouldn't fly forever when hit
   
   final Player player;
   final forge2d.Vector2 initialPosition;
@@ -20,28 +22,28 @@ class Enemy extends BodyComponent {
   @override
   Body createBody() {
     final bodyDef = BodyDef(
-      type: BodyType.dynamic, // Dynamic so it can move and interact with physics properly
+      type: BodyType.dynamic,
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 1.0, // So they don't slide forever if pushed
+      linearDamping: linearDamping,
       fixedRotation: true, // Lock rotation so enemies don't roll around
     );
     
     final body = world.createBody(bodyDef);
     
-    // Shrink hitbox: make physics shape smaller than visual size (3px buffer on each side)
+    // Shrink hitbox: make physics shape smaller than visual size
     final halfSize = (size - 6) / 2;
     final shape = PolygonShape()
       ..setAsBox(halfSize, halfSize, forge2d.Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
-      ..density = 2.0 // More mass so they don't fly off screen instantly when hit by heavier weapon
+      ..density = density
       ..friction = 0.3
       ..restitution = 0.1
-      ..isSensor = false // Not a sensor so it can collide
-      ..userData = "enemy"; // String identifier for collision detection
+      ..isSensor = false
+      ..userData = "enemy";
     
     body.createFixture(fixtureDef);
-    body.userData = "enemy"; // Also store on body for easier access
+    body.userData = "enemy";
     
     return body;
   }
@@ -74,20 +76,20 @@ class Enemy extends BodyComponent {
     // Stop movement if game isn't playing or enemy is destroyed
     final game = parent as MomentumBreakerGame;
     if (!game.isPlaying || isDestroyed) {
-      // Stop velocity when not playing
-      body.linearVelocity = forge2d.Vector2.zero();
       return;
     }
     
-    // Move towards player using force (allows knockback to work)
+    // Move towards player using ApplyForce (allows knockback to work)
     final playerPos = player.body.worldCenter;
     final enemyPos = body.worldCenter;
-    final direction = (playerPos - enemyPos).normalized();
+    final direction = (playerPos - enemyPos);
     
     // Only apply movement force if moving slower than max speed
     // This allows knockback (high speed) to decay naturally
-    if (body.linearVelocity.length < speed / 2) {
-      body.applyForce(direction * speed * body.mass * 10);
+    if (direction.length > 0.1 && body.linearVelocity.length < speed / 2) {
+      final normalized = direction.normalized();
+      // Use ApplyForce so enemies get knocked back properly when hit by the heavy weapon
+      body.applyForce(normalized * speed * body.mass * 10);
     }
   }
 
@@ -100,4 +102,3 @@ class Enemy extends BodyComponent {
     }
   }
 }
-
