@@ -6,13 +6,9 @@ import '../momentum_breaker_game.dart';
 
 class TouchControl extends PositionComponent 
     with HasGameReference<MomentumBreakerGame>, DragCallbacks, TapCallbacks {
-  // Joystick state variables
-  Vector2? _startDragPosition; // The center/anchor of the joystick (FIXED during drag)
-  Vector2? _currentDragPosition; // The knob/thumb position (updates during drag)
+  // Touch following state
+  Vector2? _currentDragPosition; // Current touch/drag position (target for player)
   bool _isActive = false;
-  
-  // Joystick parameters
-  static const double _maxRange = 60.0; // Maximum distance from anchor
 
   @override
   Future<void> onLoad() async {
@@ -61,8 +57,7 @@ class TouchControl extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    // Joystick visual is hidden - touch control still works invisibly
-    // Movement is controlled by touch/drag but no visual feedback is shown
+    // Touch control is invisible - player follows touch location
   }
 
   @override
@@ -70,10 +65,9 @@ class TouchControl extends PositionComponent
     super.onDragStart(event);
     if (!game.isPlaying) return false;
     
-    // Record the anchor point at initial touch - this MUST NOT CHANGE until drag ends
+    // Set target position to touch location
     final touchPos = event.canvasPosition;
-    _startDragPosition = touchPos;
-    _currentDragPosition = touchPos; // Start knob at same position
+    _currentDragPosition = touchPos;
     _isActive = true;
     _updatePlayerMovement();
     return true;
@@ -82,22 +76,11 @@ class TouchControl extends PositionComponent
   @override
   bool onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    if (!_isActive || !game.isPlaying || _startDragPosition == null) return false;
+    if (!_isActive || !game.isPlaying) return false;
     
-    // Update only _currentDragPosition (anchor stays fixed)
+    // Update target position to current drag position
     final newDragPos = event.canvasEndPosition;
-    
-    // Calculate vector from anchor to new position
-    final direction = newDragPos - _startDragPosition!;
-    final distance = direction.length;
-    
-    // Clamp knob position to max range from anchor
-    if (distance > _maxRange) {
-      final normalized = direction.normalized();
-      _currentDragPosition = _startDragPosition! + normalized * _maxRange;
-    } else {
-      _currentDragPosition = newDragPos;
-    }
+    _currentDragPosition = newDragPos;
     
     _updatePlayerMovement();
     return true;
@@ -108,9 +91,8 @@ class TouchControl extends PositionComponent
     super.onDragEnd(event);
     if (!_isActive) return false;
     
-    // Clear both positions and stop movement
+    // Clear target and stop movement
     _isActive = false;
-    _startDragPosition = null;
     _currentDragPosition = null;
     _stopPlayerMovement();
     return true;
@@ -121,9 +103,8 @@ class TouchControl extends PositionComponent
     super.onDragCancel(event);
     if (!_isActive) return;
     
-    // Clear both positions and stop movement
+    // Clear target and stop movement
     _isActive = false;
-    _startDragPosition = null;
     _currentDragPosition = null;
     _stopPlayerMovement();
   }
@@ -133,9 +114,8 @@ class TouchControl extends PositionComponent
     super.onTapDown(event);
     if (!game.isPlaying) return false;
     
-    // Treat tap as drag start (for mouse clicks)
+    // Set target position on tap
     final touchPos = event.canvasPosition;
-    _startDragPosition = touchPos;
     _currentDragPosition = touchPos;
     _isActive = true;
     _updatePlayerMovement();
@@ -147,45 +127,32 @@ class TouchControl extends PositionComponent
     super.onTapUp(event);
     if (!_isActive) return false;
     
-    // Clear both positions and stop movement
-    _isActive = false;
-    _startDragPosition = null;
-    _currentDragPosition = null;
-    _stopPlayerMovement();
+    // Keep target position on tap up (player continues to move there)
+    // Only stop on drag end
     return true;
   }
 
   void _updatePlayerMovement() {
     if (!game.isPlaying || !game.player.isMounted || 
-        _startDragPosition == null || _currentDragPosition == null) {
+        _currentDragPosition == null) {
       return;
     }
     
-    // Calculate direction vector from anchor to current knob position
-    final direction = _currentDragPosition! - _startDragPosition!;
-    final distance = direction.length;
+    // Convert screen coordinates to world coordinates
+    // Since camera is centered and 1:1 zoom, screen position = world position
+    final worldTarget = forge2d.Vector2(
+      _currentDragPosition!.x,
+      _currentDragPosition!.y,
+    );
     
-    // If very close to center, don't move
-    if (distance < 2.0) {
-      _stopPlayerMovement();
-      return;
-    }
-    
-    // Normalize direction
-    final normalized = direction.normalized();
-    final forge2dDirection = forge2d.Vector2(normalized.x, normalized.y);
-    
-    // Calculate strength: distance / maxRange (clamped between 0.0 and 1.0)
-    final strength = (distance / _maxRange).clamp(0.0, 1.0);
-    
-    // Apply input to player based on direction * strength (like standard joystick)
-    game.player.applyInput(forge2dDirection, strength);
+    // Set target position for player to follow
+    game.player.setTargetPosition(worldTarget);
   }
   
   void _stopPlayerMovement() {
-    // Stop player movement by applying zero input
+    // Stop player movement by clearing target
     if (game.player.isMounted) {
-      game.player.applyInput(forge2d.Vector2.zero(), 0.0);
+      game.player.setTargetPosition(null);
     }
   }
   
@@ -193,8 +160,8 @@ class TouchControl extends PositionComponent
   void update(double dt) {
     super.update(dt);
     
-    // Continuously update movement while drag is active
-    if (_isActive && _startDragPosition != null && _currentDragPosition != null && game.isPlaying) {
+    // Continuously update movement while touch is active
+    if (_isActive && _currentDragPosition != null && game.isPlaying) {
       _updatePlayerMovement();
     }
   }

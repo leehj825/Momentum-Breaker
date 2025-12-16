@@ -8,10 +8,9 @@ class Player extends BodyComponent {
   static const double visualRadius = 18.0;
   static const double density = 20.0; // Heavy enough to pull the weapon without getting yanked
   static const double linearDamping = 10.0; // Lower damping makes player feel less sluggish, while still stopping quickly enough to "whip" the chain
-  static const double speed = 400.0; // Increased movement speed for snappier, more responsive control
+  static const double speed = 600.0; // Increased movement speed for faster touch-following
   
-  forge2d.Vector2? inputDirection;
-  double inputStrength = 0.0;
+  forge2d.Vector2? targetPosition; // Target position to move towards
   final forge2d.Vector2 initialPosition;
 
   Player({required this.initialPosition});
@@ -68,26 +67,35 @@ class Player extends BodyComponent {
     add(innerCircle);
   }
 
-  void applyInput(forge2d.Vector2 direction, double strength) {
-    // Store input for velocity-based movement
-    inputDirection = direction;
-    inputStrength = strength;
+  void setTargetPosition(forge2d.Vector2? position) {
+    // Set target position to move towards (null to stop)
+    targetPosition = position;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
     
-    // Velocity-based movement: 1:1 control
-    // If joystick moves, player moves. If joystick stops, player stops.
-    if (inputDirection != null && inputStrength > 0) {
-      final velocity = forge2d.Vector2(
-        inputDirection!.x * speed * inputStrength,
-        inputDirection!.y * speed * inputStrength,
-      );
-      body.linearVelocity = velocity;
+    // Move towards target position at constant speed
+    if (targetPosition != null) {
+      final currentPos = body.worldCenter;
+      final direction = targetPosition! - currentPos;
+      final distance = direction.length;
+      
+      // If close enough to target, stop
+      if (distance < 5.0) {
+        body.linearVelocity = forge2d.Vector2.zero();
+      } else {
+        // Move towards target at constant speed
+        final normalized = direction.normalized();
+        final velocity = forge2d.Vector2(
+          normalized.x * speed,
+          normalized.y * speed,
+        );
+        body.linearVelocity = velocity;
+      }
     } else {
-      // Stop immediately when no input
+      // Stop immediately when no target
       body.linearVelocity = forge2d.Vector2.zero();
     }
   }
