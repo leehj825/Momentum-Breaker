@@ -8,8 +8,8 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 12.0;
   static const double visualRadius = 20.0;
-  static const double baseDensity = 2.0; // Lighter weapon accelerates faster and moves quicker than player
-  static const double linearDamping = 0.03; // Very low friction. Preserves momentum for swings - weapon moves faster than player
+  static const double baseDensity = 2.0; // Light projectile - 10% of player mass, accelerates fast, maintains high speed
+  static const double linearDamping = 0.1; // Low drag - removes "underwater" feel, preserves momentum for fast swinging
   static const double friction = 0.0; // No friction against walls
   static const double baseMaxLength = 150.0; // Fixed reach (base) - shortened for closer combat
   

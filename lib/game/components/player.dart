@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 class Player extends BodyComponent {
   static const double radius = 15.0;
   static const double visualRadius = 18.0;
-  static const double density = 20.0; // Heavy enough to pull the weapon without getting yanked
-  static const double linearDamping = 0.0; // Zero damping for direct velocity control
+  static const double density = 20.0; // Heavy anchor - much heavier than weapon to pull it around without being yanked
+  static const double linearDamping = 10.0; // High damping for instant stops - player moves instantly, stops instantly
   static const double speed = 1000.0; // Fast movement speed for responsive touch-following
   
   forge2d.Vector2? targetPosition; // Target position to move towards
@@ -86,16 +86,20 @@ class Player extends BodyComponent {
       if (distance < 5.0) {
         body.linearVelocity = forge2d.Vector2.zero();
       } else {
-        // Move towards target at constant speed
-        // Directly set velocity for immediate response (damping is 0)
+        // Move towards target using massive force for instant response
+        // With high density (20.0) and high damping (10.0), we need huge force
         final normalized = direction.normalized();
-        final velocity = forge2d.Vector2(
-          normalized.x * speed,
-          normalized.y * speed,
+        
+        // Apply massive force for instant movement
+        // With high density (20.0) and high damping (10.0), we need huge force
+        final forceMagnitude = 60000.0; // Massive force multiplier to overcome high density and damping
+        
+        final force = forge2d.Vector2(
+          normalized.x * forceMagnitude * body.mass,
+          normalized.y * forceMagnitude * body.mass,
         );
         
-        // Directly set velocity - no damping to fight against
-        body.linearVelocity = velocity;
+        body.applyForce(force);
       }
     } else {
       // Stop immediately when no target
