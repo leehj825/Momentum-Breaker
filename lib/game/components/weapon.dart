@@ -11,7 +11,7 @@ class Weapon extends BodyComponent {
   static const double baseDensity = 3.0; // Lighter weapon accelerates faster
   static const double linearDamping = 0.1; // Very low friction. Preserves momentum for swings
   static const double friction = 0.0; // No friction against walls
-  static const double baseMaxLength = 250.0; // Fixed reach (base)
+  static const double baseMaxLength = 150.0; // Fixed reach (base) - shortened for closer combat
   
   final Player player;
   final forge2d.Vector2 initialPosition;

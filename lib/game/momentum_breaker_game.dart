@@ -117,10 +117,10 @@ class MomentumBreakerGame extends Forge2DGame
     player = Player(initialPosition: playerPos);
     await add(player);
     
-    // Weapon spawns at exact max length (250.0) to the right of player
+    // Weapon spawns at exact max length (150.0) to the right of player
     // This ensures the chain starts taut, ready to swing
     // Clamp to screen bounds if screen is too small
-    final baseSpawnDistance = 250.0;
+    final baseSpawnDistance = 150.0;
     final wallThickness = 20.0;
     final weaponRadius = 20.0;
     final safeMargin = wallThickness + weaponRadius;
@@ -136,7 +136,7 @@ class MomentumBreakerGame extends Forge2DGame
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
-    // Connect player and weapon with joint (maxLength = 250.0 * multiplier)
+    // Connect player and weapon with joint (maxLength = 150.0 * multiplier)
     await weapon.createJoint();
   }
 
@@ -264,9 +264,9 @@ class MomentumBreakerGame extends Forge2DGame
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    // Weapon spawns at exact max length (250.0) to the right of player
+    // Weapon spawns at exact max length (150.0) to the right of player
     // Clamp to screen bounds if screen is too small
-    final baseSpawnDistance = 250.0;
+    final baseSpawnDistance = 150.0;
     final wallThickness = 20.0;
     final weaponRadius = 20.0;
     final safeMargin = wallThickness + weaponRadius;
