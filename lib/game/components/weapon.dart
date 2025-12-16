@@ -8,8 +8,8 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 12.0;
   static const double visualRadius = 20.0;
-  static const double baseDensity = 2.0; // Light projectile - 10% of player mass, accelerates fast, maintains high speed
-  static const double linearDamping = 0.1; // Low drag - removes "underwater" feel, preserves momentum for fast swinging
+  static const double baseDensity = 1.0; // Ultra-light bullet - 2% of player mass, accelerates extremely fast
+  static const double linearDamping = 0.0; // Zero drag - removes all air resistance, weapon never loses speed
   static const double friction = 0.0; // No friction against walls
   static const double baseMaxLength = 150.0; // Fixed reach (base) - shortened for closer combat
   
@@ -29,6 +29,7 @@ class Weapon extends BodyComponent {
       position: forge2d.Vector2(initialPosition.x, initialPosition.y),
       linearDamping: linearDamping,
       angularDamping: 0.0,
+      bullet: true, // Enable bullet mode - prevents fast-moving weapon from tunneling through walls
     );
     
     final body = world.createBody(bodyDef);
@@ -88,10 +89,10 @@ class Weapon extends BodyComponent {
       // Normalize the direction
       final normalized = direction.normalized();
       
-      // Apply a continuous Force in that direction to keep rope taut
-      // Increased force multiplier makes weapon faster than player for dynamic swinging
-      // Formula: force = direction * (body.mass * 200.0)
-      final forceMagnitude = body.mass * 200.0;
+      // Apply extreme tension force for instant rotational acceleration
+      // Extreme force multiplier forces weapon to accelerate rotationally the instant player turns
+      // Formula: force = direction * (body.mass * 1000.0)
+      final forceMagnitude = body.mass * 1000.0;
       final force = forge2d.Vector2(
         normalized.x * forceMagnitude,
         normalized.y * forceMagnitude,
@@ -128,6 +129,7 @@ class Weapon extends BodyComponent {
       position: oldPos,
       linearDamping: linearDamping,
       angularDamping: 0.0,
+      bullet: true, // Enable bullet mode - prevents fast-moving weapon from tunneling through walls
     );
     
     body = world.createBody(bodyDef);

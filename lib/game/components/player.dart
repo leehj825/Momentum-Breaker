@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 class Player extends BodyComponent {
   static const double radius = 15.0;
   static const double visualRadius = 18.0;
-  static const double density = 20.0; // Heavy anchor - much heavier than weapon to pull it around without being yanked
-  static const double linearDamping = 10.0; // High damping for instant stops - player moves instantly, stops instantly
+  static const double density = 50.0; // Ultra-heavy anchor - won't be pulled by the weapon, creates whip effect
+  static const double linearDamping = 20.0; // Extreme damping for instant stops - player stops instantly when touch released, whipping the weapon
   static const double speed = 1000.0; // Fast movement speed for responsive touch-following
   
   forge2d.Vector2? targetPosition; // Target position to move towards
@@ -90,9 +90,9 @@ class Player extends BodyComponent {
         // With high density (20.0) and high damping (10.0), we need huge force
         final normalized = direction.normalized();
         
-        // Apply massive force for instant movement
-        // With high density (20.0) and high damping (10.0), we need huge force
-        final forceMagnitude = 60000.0; // Massive force multiplier to overcome high density and damping
+        // Apply extreme force for instant movement
+        // With ultra-high density (50.0) and extreme damping (20.0), we need massive force
+        final forceMagnitude = 200000.0; // Extreme force multiplier to overcome ultra-high density and damping
         
         final force = forge2d.Vector2(
           normalized.x * forceMagnitude * body.mass,
