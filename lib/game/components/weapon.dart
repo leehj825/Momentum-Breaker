@@ -8,8 +8,8 @@ import 'player.dart';
 class Weapon extends BodyComponent {
   static const double baseRadius = 12.0;
   static const double visualRadius = 20.0;
-  static const double baseDensity = 1.0; // Ultra-light bullet - 2% of player mass, accelerates extremely fast
-  static const double linearDamping = 0.0; // Zero drag - removes all air resistance, weapon never loses speed
+  static const double baseDensity = 1.0; // Lightweight = Fast Acceleration
+  static const double linearDamping = 0.05; // Low drag removes "underwater" feel - weapon preserves speed
   static const double friction = 0.0; // No friction against walls
   static const double baseMaxLength = 150.0; // Fixed reach (base) - shortened for closer combat
   
@@ -78,24 +78,20 @@ class Weapon extends BodyComponent {
   void update(double dt) {
     super.update(dt);
     
-    // ARTIFICIAL TENSION SYSTEM
-    // Calculate the vector pointing from Player to Weapon
+    // ARTIFICIAL TENSION SYSTEM - High Speed Whip Physics
+    // Constantly push weapon away from player (simulating centrifugal force)
     final playerPos = player.body.worldCenter;
-    final weaponPos = body.worldCenter;
-    final direction = (weaponPos - playerPos);
+    final myPos = body.worldCenter;
+    final diff = myPos - playerPos;
     
-    // Only apply tension if there's a meaningful distance
-    if (direction.length > 0.1) {
-      // Normalize the direction
-      final normalized = direction.normalized();
-      
-      // Apply extreme tension force for instant rotational acceleration
-      // Extreme force multiplier forces weapon to accelerate rotationally the instant player turns
-      // Formula: force = direction * (body.mass * 1000.0)
-      final forceMagnitude = body.mass * 1000.0;
+    if (diff.length > 0.1) {
+      final direction = diff.normalized();
+      // Apply continuous outward force to keep chain taut
+      // 2000.0 multiplier gives it a strong "flinging" tendency
+      final forceMagnitude = body.mass * 2000.0;
       final force = forge2d.Vector2(
-        normalized.x * forceMagnitude,
-        normalized.y * forceMagnitude,
+        direction.x * forceMagnitude,
+        direction.y * forceMagnitude,
       );
       
       body.applyForce(force);
