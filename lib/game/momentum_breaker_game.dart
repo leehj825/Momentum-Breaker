@@ -111,15 +111,41 @@ class MomentumBreakerGame extends Forge2DGame
     // Engine remains running so UI can render
   }
 
+  // Helper method to calculate safe weapon spawn position within screen bounds
+  forge2d.Vector2 _calculateSafeWeaponPosition(forge2d.Vector2 playerPos) {
+    // Calculate safe spawn distance to ensure weapon stays within screen bounds
+    // Use 30% of the smaller dimension to ensure weapon spawns within bounds
+    // Account for wall thickness (20px) and weapon radius (20px visual + 12px physics)
+    final wallThickness = 20.0;
+    final weaponRadius = 20.0; // Visual radius
+    final safeMargin = wallThickness + weaponRadius;
+    final maxSpawnDistance = math.min(size.x, size.y) * 0.3 - safeMargin;
+    final spawnDistance = math.min(200.0, maxSpawnDistance); // Use 200px or safe distance, whichever is smaller
+    
+    // Spawn weapon to the right of player, but clamp to screen bounds
+    var weaponX = playerPos.x + spawnDistance;
+    var weaponY = playerPos.y;
+    
+    // Clamp weapon position to stay within screen bounds (accounting for wall thickness and weapon radius)
+    final minX = safeMargin;
+    final maxX = size.x - safeMargin;
+    final minY = safeMargin;
+    final maxY = size.y - safeMargin;
+    
+    weaponX = math.max(minX, math.min(maxX, weaponX));
+    weaponY = math.max(minY, math.min(maxY, weaponY));
+    
+    return forge2d.Vector2(weaponX, weaponY);
+  }
+
   Future<void> _initializePlayerAndWeapon() async {
     // Player starts at center of screen (world size = screen size)
     final playerPos = forge2d.Vector2(size.x / 2, size.y / 2);
     player = Player(initialPosition: playerPos);
     await add(player);
     
-    // Weapon spawns 200px away - RopeJoint will set maxLength to 1.2x this distance (240px)
-    // This gives good swing radius with natural chain slack
-    final weaponPos = forge2d.Vector2(playerPos.x + 200.0, playerPos.y);
+    // Calculate safe weapon position within screen bounds
+    final weaponPos = _calculateSafeWeaponPosition(playerPos);
     weapon = Weapon(player: player, initialPosition: weaponPos);
     await add(weapon);
     
@@ -251,9 +277,8 @@ class MomentumBreakerGame extends Forge2DGame
     player.body.linearVelocity = forge2d.Vector2.zero();
     player.body.angularVelocity = 0.0;
     
-    // Weapon spawns 200px away - RopeJoint will set maxLength to 1.2x this distance (240px)
-    // This gives good swing radius with natural chain slack
-    final weaponPos = forge2d.Vector2(playerPos.x + 200.0, playerPos.y);
+    // Calculate safe weapon position within screen bounds
+    final weaponPos = _calculateSafeWeaponPosition(playerPos);
     weapon.body.setTransform(weaponPos, 0.0);
     weapon.body.linearVelocity = forge2d.Vector2.zero();
     weapon.body.angularVelocity = 0.0;
