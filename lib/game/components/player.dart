@@ -7,7 +7,7 @@ class Player extends BodyComponent {
   static const double radius = 15.0;
   static const double visualRadius = 18.0;
   static const double density = 20.0; // Heavy enough to pull the weapon without getting yanked
-  static const double linearDamping = 10.0; // Lower damping makes player feel less sluggish, while still stopping quickly enough to "whip" the chain
+  static const double linearDamping = 2.0; // Reduced damping to allow full speed - still stops quickly when no input
   static const double speed = 1000.0; // Fast movement speed for responsive touch-following
   
   forge2d.Vector2? targetPosition; // Target position to move towards
@@ -87,12 +87,23 @@ class Player extends BodyComponent {
         body.linearVelocity = forge2d.Vector2.zero();
       } else {
         // Move towards target at constant speed
+        // Apply force to overcome damping and reach desired speed
         final normalized = direction.normalized();
-        final velocity = forge2d.Vector2(
+        final desiredVelocity = forge2d.Vector2(
           normalized.x * speed,
           normalized.y * speed,
         );
-        body.linearVelocity = velocity;
+        
+        // Calculate force needed to achieve desired velocity, accounting for damping
+        // Force = (desiredVelocity - currentVelocity) * mass / dt + damping * currentVelocity
+        final currentVelocity = body.linearVelocity;
+        final velocityDiff = desiredVelocity - currentVelocity;
+        final force = forge2d.Vector2(
+          velocityDiff.x * body.mass * 60.0 + linearDamping * currentVelocity.x * body.mass,
+          velocityDiff.y * body.mass * 60.0 + linearDamping * currentVelocity.y * body.mass,
+        );
+        
+        body.applyForce(force);
       }
     } else {
       // Stop immediately when no target
