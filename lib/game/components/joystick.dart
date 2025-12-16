@@ -216,10 +216,22 @@ class VirtualJoystick extends PositionComponent
 
   void _updatePlayerInput(forge2d.Vector2 direction, [double strength = 0.0]) {
     // Prevent input processing when the game is not playing
-    if (!game.isPlaying) return;
+    if (!game.isPlaying || !game.player.isMounted) return;
     
-    if (game.player.isMounted) {
-      game.player.applyInput(direction, strength);
+    // Convert joystick direction to target position relative to player
+    // Calculate target position: player position + direction * distance
+    final playerPos = game.player.body.worldCenter;
+    final targetDistance = 200.0 * strength; // Max distance based on strength
+    final targetPos = forge2d.Vector2(
+      playerPos.x + direction.x * targetDistance,
+      playerPos.y + direction.y * targetDistance,
+    );
+    
+    // Set target position (null if no input)
+    if (strength > 0) {
+      game.player.setTargetPosition(targetPos);
+    } else {
+      game.player.setTargetPosition(null);
     }
   }
 

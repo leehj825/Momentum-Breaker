@@ -8,7 +8,7 @@ class Player extends BodyComponent {
   static const double visualRadius = 18.0;
   static const double density = 20.0; // Heavy enough to pull the weapon without getting yanked
   static const double linearDamping = 10.0; // Lower damping makes player feel less sluggish, while still stopping quickly enough to "whip" the chain
-  static const double speed = 750.0; // Increased movement speed for faster touch-following
+  static const double speed = 1000.0; // Fast movement speed for responsive touch-following
   
   forge2d.Vector2? targetPosition; // Target position to move towards
   final forge2d.Vector2 initialPosition;
