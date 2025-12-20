@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 class Player extends BodyComponent {
   static const double radius = 15.0;
   static const double density = 1.0;
-  static const double linearDamping = 10.0; // High damping for quick stops
+  static const double linearDamping = 5.0; // Reduced from 10.0 for better feel with continuous force
   
-  flame.Vector2? inputDirection;
+  flame.Vector2 _currentInput = flame.Vector2.zero();
+  double _currentStrength = 0.0;
   final flame.Vector2 initialPosition;
 
   Player({required this.initialPosition});
@@ -58,17 +59,20 @@ class Player extends BodyComponent {
   }
 
   void applyInput(flame.Vector2 direction, double strength) {
-    if (direction.length > 0) {
-      final normalized = direction.normalized();
-      final force = Vector2(normalized.x * strength * 1000.0, normalized.y * strength * 1000.0);
-      body.applyLinearImpulse(force);
-    }
+    _currentInput = direction;
+    _currentStrength = strength;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    // Input is handled externally via applyInput
+    
+    if (_currentStrength > 0 && _currentInput.length > 0) {
+      final normalized = _currentInput.normalized();
+      // Apply force (mass * acceleration). 
+      // Adjusted multiplier for continuous force application
+      final force = Vector2(normalized.x, normalized.y) * _currentStrength * 300000.0;
+      body.applyForce(force);
+    }
   }
 }
-

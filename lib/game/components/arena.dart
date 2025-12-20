@@ -67,6 +67,7 @@ class Arena extends Component with HasGameRef<MomentumBreakerGame> {
     final wallSprite = RectangleComponent(
       size: size,
       paint: Paint()..color = color,
+      position: flame.Vector2(position.x, position.y),
     );
     wallSprite.anchor = Anchor.center;
     add(wallSprite);

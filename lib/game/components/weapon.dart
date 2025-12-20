@@ -12,7 +12,7 @@ class Weapon extends BodyComponent {
   
   final Player player;
   final flame.Vector2 initialPosition;
-  DistanceJoint? joint;
+  RopeJoint? joint; // Changed to RopeJoint
   double currentMassMultiplier = 1.0;
   double currentChainLengthMultiplier = 1.0;
   bool hasSpikes = false;
@@ -24,7 +24,8 @@ class Weapon extends BodyComponent {
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: Vector2(initialPosition.x, initialPosition.y),
-      linearDamping: 2.0, // Moderate damping
+      linearDamping: 1.0, // Reduced damping for more swing
+      angularDamping: 1.0,
     );
     
     final body = world.createBody(bodyDef);
@@ -71,18 +72,14 @@ class Weapon extends BodyComponent {
     final distance = (weaponPos - playerPos).length;
     final baseChainLength = distance * currentChainLengthMultiplier;
     
-    final jointDef = DistanceJointDef()
-      ..initialize(
-        player.body,
-        body,
-        playerPos,
-        weaponPos,
-      )
-      ..length = baseChainLength
-      ..frequencyHz = 0.0 // No spring effect
-      ..dampingRatio = 0.0;
+    final jointDef = RopeJointDef()
+      ..bodyA = player.body
+      ..bodyB = body
+      ..localAnchorA.setFrom(Vector2.zero())
+      ..localAnchorB.setFrom(Vector2.zero())
+      ..maxLength = baseChainLength;
     
-    joint = DistanceJoint(jointDef);
+    joint = RopeJoint(jointDef);
     world.createJoint(joint!);
   }
 
@@ -90,15 +87,19 @@ class Weapon extends BodyComponent {
     currentMassMultiplier = multiplier;
     // Recreate body with new mass
     final oldPos = body.worldCenter;
+    final oldVelocity = body.linearVelocity;
+    
     world.destroyBody(body);
     
     final bodyDef = BodyDef(
       type: BodyType.dynamic,
       position: oldPos,
-      linearDamping: 2.0,
+      linearDamping: 1.0,
+      angularDamping: 1.0,
     );
     
     body = world.createBody(bodyDef);
+    body.linearVelocity = oldVelocity; // Preserve velocity
     
     final shape = CircleShape();
     shape.radius = baseRadius;
@@ -122,24 +123,25 @@ class Weapon extends BodyComponent {
       final playerPos = player.body.worldCenter;
       final weaponPos = body.worldCenter;
       final distance = (weaponPos - playerPos).length;
-      final newLength = distance * currentChainLengthMultiplier;
+      
+      // Calculate new length based on multiplier and original distance concept
+      // Or just scale current length?
+      // Let's use a standard base length logic.
+      // Assuming initial distance was ~50.
+      final newLength = 50.0 * currentChainLengthMultiplier; 
       
       // Destroy old joint
       world.destroyJoint(joint!);
       
       // Create new joint with updated length
-      final jointDef = DistanceJointDef()
-        ..initialize(
-          player.body,
-          body,
-          playerPos,
-          weaponPos,
-        )
-        ..length = newLength
-        ..frequencyHz = 0.0
-        ..dampingRatio = 0.0;
+      final jointDef = RopeJointDef()
+        ..bodyA = player.body
+        ..bodyB = body
+        ..localAnchorA.setFrom(Vector2.zero())
+        ..localAnchorB.setFrom(Vector2.zero())
+        ..maxLength = newLength;
       
-      joint = DistanceJoint(jointDef);
+      joint = RopeJoint(jointDef);
       world.createJoint(joint!);
     }
   }
@@ -171,4 +173,3 @@ class Weapon extends BodyComponent {
     return body.linearVelocity;
   }
 }
-

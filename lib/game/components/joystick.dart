@@ -3,7 +3,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import '../momentum_breaker_game.dart';
 
-class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
+class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame>, DragCallbacks {
   static const double joystickRadius = 60.0;
   static const double knobRadius = 25.0;
   static const double maxDistance = joystickRadius - knobRadius;
@@ -74,7 +74,8 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
     );
   }
 
-  bool onDragStart(DragStartEvent event) {
+  @override
+  void onDragStart(DragStartEvent event) {
     final localPos = event.localPosition;
     final distance = (localPos - _joystickPosition).length;
     
@@ -82,29 +83,26 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
       _touchPosition = localPos;
       _isActive = true;
       _updateKnobPosition(localPos);
-      return true;
     }
-    
-    return false;
   }
 
-  bool onDragUpdate(DragUpdateEvent event) {
-    if (!_isActive) return false;
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    if (!_isActive) return;
     
     final localPos = event.canvasEndPosition;
     _touchPosition = localPos;
     _updateKnobPosition(localPos);
-    return true;
   }
 
-  bool onDragEnd(DragEndEvent event) {
-    if (!_isActive) return false;
+  @override
+  void onDragEnd(DragEndEvent event) {
+    if (!_isActive) return;
     
     _isActive = false;
     _touchPosition = null;
     _knobPosition = _joystickPosition;
     _updatePlayerInput(Vector2.zero());
-    return true;
   }
 
   void _updateKnobPosition(Vector2 touchPos) {
@@ -127,7 +125,4 @@ class VirtualJoystick extends Component with HasGameRef<MomentumBreakerGame> {
   void _updatePlayerInput(Vector2 direction, [double strength = 0.0]) {
     gameRef.player.applyInput(direction, strength);
   }
-
-  bool hasGestureHandlers() => true;
 }
-
