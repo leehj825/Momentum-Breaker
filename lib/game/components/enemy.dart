@@ -7,8 +7,9 @@ import '../momentum_breaker_game.dart';
 
 class Enemy extends BodyComponent {
   static const double size = 20.0;
-  static const double speed = 50.0;
+  static const double speed = 40.0; // Slightly reduced speed for dynamic body control
   static const double health = 100.0;
+  static const double linearDamping = 5.0;
   
   final Player player;
   final flame.Vector2 initialPosition;
@@ -20,8 +21,10 @@ class Enemy extends BodyComponent {
   @override
   Body createBody() {
     final bodyDef = BodyDef(
-      type: BodyType.kinematic, // Kinematic so it can move but not be affected by physics
+      type: BodyType.dynamic, // Changed to dynamic for physics interactions
       position: Vector2(initialPosition.x, initialPosition.y),
+      linearDamping: linearDamping,
+      fixedRotation: true, // Keep orientation fixed for now
     );
     
     final body = world.createBody(bodyDef);
@@ -31,11 +34,13 @@ class Enemy extends BodyComponent {
       ..setAsBox(halfSize, halfSize, Vector2.zero(), 0.0);
     
     final fixtureDef = FixtureDef(shape)
-      ..isSensor = false // Not a sensor so it can collide
-      ..userData = this; // Store reference for collision detection
+      ..density = 2.0 // Heavier than player
+      ..friction = 0.3
+      ..restitution = 0.2
+      ..userData = this;
     
     body.createFixture(fixtureDef);
-    body.userData = this; // Store reference on body for collision detection
+    body.userData = this;
     
     return body;
   }
@@ -72,8 +77,9 @@ class Enemy extends BodyComponent {
     final enemyPos = body.worldCenter;
     final direction = (playerPos - enemyPos).normalized();
     
-    final velocity = direction * speed * dt;
-    body.setTransform(body.position + velocity, body.angle);
+    // Apply force to move
+    final force = direction * speed * 4000.0; // Adjusted multiplier
+    body.applyForce(force);
   }
 
   void takeDamage(double damage) {
@@ -85,4 +91,3 @@ class Enemy extends BodyComponent {
     }
   }
 }
-
